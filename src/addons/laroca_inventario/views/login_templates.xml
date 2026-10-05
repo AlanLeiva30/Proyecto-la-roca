@@ -8,8 +8,18 @@
         <xpath expr="//input[@name='login']" position="attributes">
             <attribute name="placeholder">Ej.: encargado.centro</attribute>
         </xpath>
-        <xpath expr="//input[@name='password']" position="attributes">
-            <attribute name="placeholder">Tu contraseña</attribute>
+        <!-- Contraseña con botón para verla u ocultarla (ojito) -->
+        <xpath expr="//input[@name='password']" position="replace">
+            <div class="input-group">
+                <input type="password" placeholder="Tu contraseña" name="password" id="password" class="form-control"
+                       required="required" autocomplete="current-password"
+                       t-att-autofocus="'autofocus' if login else None" maxlength="4096"/>
+                <button type="button" class="btn btn-outline-secondary o_laroca_ver_clave" title="Mostrar u ocultar la contraseña"
+                        aria-label="Mostrar u ocultar la contraseña"
+                        onclick="var c = document.getElementById('password'); var ver = c.type === 'password'; c.type = ver ? 'text' : 'password'; this.firstElementChild.className = ver ? 'fa fa-eye-slash' : 'fa fa-eye';">
+                    <i class="fa fa-eye"/>
+                </button>
+            </div>
         </xpath>
     </template>
 </odoo>

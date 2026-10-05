@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Publica (o actualiza) el sistema en el servidor de la nube. Se ejecuta en TU computadora.
 #   Uso: ./scripts/desplegar.sh <IP> [usuario]
-#        ./scripts/desplegar.sh 20.115.4.10 laroca     (Azure: el usuario que creaste en la VM)
-#        ./scripts/desplegar.sh 157.230.1.2            (DigitalOcean: entra como root)
+#        ./scripts/desplegar.sh 34.121.143.44 laroca   (Google Cloud: usuario "laroca")
 # La primera vez: prepara el servidor, genera claves nuevas, instala con datos de ejemplo y
 # activa HTTPS. Las siguientes veces: sube el código nuevo y actualiza sin perder datos.
 # Las claves quedan en produccion/credenciales.txt (en tu computadora, NO se sube a GitHub).
@@ -12,9 +11,9 @@ cd "$(dirname "$0")/.."
 IP="${1:-}"
 USUARIO="${2:-root}"
 [ -n "$IP" ] || { echo "Uso: ./scripts/desplegar.sh <IP del servidor> [usuario]"; exit 1; }
-LLAVE="${LAROCA_LLAVE:-$HOME/.ssh/laroca_digitalocean}"
+LLAVE="${LAROCA_LLAVE:-$HOME/.ssh/laroca_servidor}"
 SSH=(ssh -i "$LLAVE" -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 "$USUARIO@$IP")
-# Con un usuario que no es root (Azure, AWS, Google) todo se ejecuta con sudo
+# Con un usuario que no es root (Google Cloud) todo se ejecuta con sudo
 SUDO=""
 [ "$USUARIO" = root ] || SUDO="sudo"
 DESTINO=/opt/laroca
@@ -84,7 +83,7 @@ Usuarios de prueba: administrador, encargado.centro, encargado.norte, encargado.
 Contraseña de esos usuarios: $DEMO_CLAVE
 Buzón de correos:   https://correo.$DOMINIO  (usuario: $CORREO_USUARIO, clave: $CORREO_CLAVE)
 Usuario técnico de Odoo: admin / $ODOO_ADMIN_PASSWORD
-Servidor:           ssh -i ~/.ssh/laroca_digitalocean $USUARIO@$IP
+Servidor:           ssh -i ~/.ssh/laroca_servidor $USUARIO@$IP
 TXT
 REMOTO
 chmod 600 produccion/credenciales.txt

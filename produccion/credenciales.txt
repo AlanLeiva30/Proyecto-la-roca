@@ -4,4 +4,4 @@ Usuarios de prueba: administrador, encargado.centro, encargado.norte, encargado.
 Contraseña de esos usuarios: LiyAmibnc93h
 Buzón de correos:   https://correo.laroca.34-121-143-44.sslip.io  (usuario: laroca, clave: NZSkZJGRk1rn1NKpzrz5)
 Usuario técnico de Odoo: admin / 3yCWyI2JbRCvnmShPZrS
-Servidor:           ssh -i ~/.ssh/laroca_digitalocean laroca@34.121.143.44
+Servidor:           ssh -i ~/.ssh/laroca_servidor laroca@34.121.143.44

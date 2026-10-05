@@ -3,9 +3,8 @@
 > **En línea:** <https://laroca.34-121-143-44.sslip.io> — Google Cloud, Compute Engine `e2-small`
 > (us-central1-a), Ubuntu 24.04, IP fija `34.121.143.44`. Actualizar: `./scripts/desplegar.sh 34.121.143.44 laroca`
 
-El sistema se publica en un **servidor virtual con Ubuntu** en la nube (**Azure for Students**;
-también funciona igual en DigitalOcean u otro proveedor) con **Docker**, tal como se planificó en la
-Fase 1 (servidor self-hosted + certificado HTTPS gratuito de Let's Encrypt).
+El sistema está publicado en un **servidor virtual de Google Cloud** (Compute Engine) con **Docker**,
+tal como se planificó en la Fase 1 (servidor self-hosted + certificado HTTPS gratuito de Let's Encrypt).
 
 ```
 Internet ──HTTPS──▶ Caddy (certificado automático) ──▶ Odoo 18 (2 workers) ──▶ PostgreSQL 16
@@ -22,80 +21,49 @@ Internet ──HTTPS──▶ Caddy (certificado automático) ──▶ Odoo 18 
 | `deploy/respaldo.sh` | Respaldo diario (base de datos + fotos/archivos), guarda 7 días |
 | `scripts/desplegar.sh` | Hace todo lo anterior desde tu computadora con **un solo comando** |
 
-## Paso a paso con Azure for Students (la primera vez)
+## Paso a paso con Google Cloud (proveedor usado)
 
-### 1. Activar Azure for Students
-Entrar a <https://azure.microsoft.com/free/students> con el correo de la UDB. Da **$100 de crédito
-sin tarjeta**; cuando se acaba, la máquina se apaga y **no cobra nada**.
+### 1. Cuenta y facturación
+- Crear la cuenta en <https://cloud.google.com> y activar la facturación. Google ofrece una prueba
+  con crédito para cuentas nuevas, pero **pide tarjeta** y, según el país y la cuenta, **puede pedir
+  un pago anticipado (prepago)** al activar la facturación. Antes de crear el servidor conviene
+  revisar en **Facturación** qué modalidad quedó (crédito de prueba, prepago o pago posterior).
+- El servidor **e2-small** cuesta aproximadamente **$13–15 al mes**; se descuenta del crédito o del
+  saldo según esa modalidad. Para no gastar: detener o borrar la instancia cuando no se use.
 
-### 2. Crear la máquina virtual
-En el portal (<https://portal.azure.com>): **Máquinas virtuales → Crear → Máquina virtual de Azure**:
-- **Grupo de recursos**: nuevo, `laroca`.
-- **Nombre**: `laroca-servidor`. **Región**: la que el portal permita (por ejemplo *East US 2*;
-  las cuentas de estudiante solo admiten algunas regiones).
-- **Imagen**: **Ubuntu Server 24.04 LTS – x64 Gen2**.
-- **Tamaño**: **B1ms** (1 vCPU, 2 GB RAM, ≈ $15/mes) o **B2s** (2 vCPU, 4 GB) si sobra crédito.
-- **Autenticación**: **Clave pública SSH**. Usuario: `laroca`. Origen: *Usar clave pública existente*
-  → pegar `cat ~/.ssh/laroca_digitalocean.pub`.
-- **Puertos de entrada públicos**: permitir **SSH (22), HTTP (80) y HTTPS (443)**.
-- **Discos**: SSD estándar, 30 GB está bien. → **Revisar y crear → Crear**.
-- Copiar la **dirección IP pública** de la máquina.
-
-### 3. Publicar
+### 2. Crear el servidor
+Así se creó, desde **Cloud Shell** (la terminal de la consola de Google Cloud), en el proyecto con
+Compute Engine habilitado:
 ```bash
-./scripts/desplegar.sh 20.115.4.10 laroca      # IP de la máquina y usuario "laroca"
+gcloud compute addresses create laroca-ip --region=us-central1
+gcloud compute firewall-rules create laroca-web --allow=tcp:80,tcp:443 --target-tags=laroca-web
+gcloud compute instances create laroca-servidor --zone=us-central1-a --machine-type=e2-small \
+  --image-family=ubuntu-2404-lts-amd64 --image-project=ubuntu-os-cloud \
+  --boot-disk-size=30GB --boot-disk-type=pd-balanced --address=laroca-ip --tags=laroca-web \
+  --metadata=ssh-keys="laroca:$(awk '{print $1, $2}' ~/.ssh/laroca_servidor.pub) laroca"
 ```
+- **IP fija** (`laroca-ip`): si no se reserva, la IP cambia al reiniciar y cambiaría la dirección web.
+- **Firewall**: abre la web (80 y 443); SSH (22) ya viene abierto en la red por defecto.
+- **Llave SSH**: la pública de la computadora que publica; `laroca` es el usuario del servidor.
 
-## Paso a paso con Google Cloud
-
-1. Crear la cuenta en <https://cloud.google.com/free> (prueba gratis de **$300 por 90 días**; pide
-   tarjeta para verificar, pero no cobra si no se activa la cuenta de pago).
-2. **Compute Engine → Instancias de VM → Crear instancia**:
-   - **Nombre**: `laroca-servidor`. **Región**: `us-central1` o `us-east1`.
-   - **Tipo de máquina**: **e2-small** (2 vCPU compartidas, 2 GB, ≈ $13/mes) o e2-medium (4 GB).
-   - **Disco de arranque**: **Ubuntu 24.04 LTS (x86/64)**, 30 GB, disco persistente balanceado.
-   - **Firewall**: marcar **Permitir tráfico HTTP** y **Permitir tráfico HTTPS**.
-   - **Redes → Interfaz de red → Dirección IPv4 externa**: **Reservar dirección IP estática**
-     (si no, la IP cambia al reiniciar y cambiaría la dirección web).
-   - **Seguridad → Administrar acceso → Agregar elemento (Claves SSH)**: pegar la llave pública
-     terminada en ` laroca` (Google usa esa última palabra como nombre de usuario).
-   - **Crear** y copiar la **IP externa**.
-3. Publicar:
-```bash
-./scripts/desplegar.sh 34.123.45.67 laroca
-```
-
-## Paso a paso con DigitalOcean (alternativa)
-
-### 1. Crear la cuenta (lo hace una persona del equipo)
-1. *(Opcional, recomendado)* Pedir el **GitHub Student Developer Pack** (<https://education.github.com/pack>)
-   con el correo de la UDB: incluye **$200 de crédito en DigitalOcean**, así el servidor no cuesta nada.
-2. Crear la cuenta en <https://www.digitalocean.com> (pide tarjeta o PayPal para verificar).
-
-### 2. Crear el servidor ("Droplet")
-En DigitalOcean: **Create → Droplets**:
-- **Región**: New York o San Francisco (las más cercanas a El Salvador).
-- **Imagen**: **Ubuntu 24.04 (LTS) x64**.
-- **Tamaño**: Basic → Regular → **2 GB RAM / 1 CPU** (≈ $12/mes).
-- **Autenticación**: **SSH Key** → *New SSH Key* → pegar la llave pública de la computadora que
-  publica (`cat ~/.ssh/laroca_digitalocean.pub`).
-- **Nombre**: `laroca-servidor` → **Create Droplet**. Copiar la **IP** que aparece.
+También se puede hacer desde la consola: **Compute Engine → Instancias de VM → Crear instancia**
+con los mismos datos (Ubuntu 24.04, e2-small, permitir HTTP/HTTPS, IP estática y la llave SSH).
 
 ### 3. Publicar
 En la carpeta del proyecto:
 ```bash
-./scripts/desplegar.sh 157.230.1.2      # usar la IP del Droplet
+./scripts/desplegar.sh 34.121.143.44 laroca
 ```
-Tarda unos 5–10 minutos la primera vez. Al final muestra la dirección, por ejemplo
-`https://laroca.157-230-1-2.sslip.io`, y guarda las claves en **`produccion/credenciales.txt`**
-(solo en tu computadora; esa carpeta no se sube a GitHub).
+Tarda unos 5–10 minutos la primera vez. Al final muestra la dirección y guarda las claves en
+**`produccion/credenciales.txt`** (solo en tu computadora; esa carpeta no se sube a GitHub).
 
-La dirección usa **sslip.io**: un servicio gratuito que convierte la IP en un nombre, para que
-Let's Encrypt pueda dar el certificado HTTPS sin comprar un dominio.
+La dirección usa **sslip.io**: un servicio gratuito que convierte la IP en un nombre
+(`laroca.34-121-143-44.sslip.io`), para que Let's Encrypt pueda dar el certificado HTTPS sin
+comprar un dominio.
 
 ## Actualizar después de cambiar el código
 ```bash
-./scripts/desplegar.sh 20.115.4.10 laroca      # Azure (en DigitalOcean: solo la IP)
+./scripts/desplegar.sh 34.121.143.44 laroca
 ```
 El mismo comando: sube el código nuevo y actualiza los módulos **sin perder datos**.
 
@@ -111,7 +79,7 @@ El mismo comando: sube el código nuevo y actualiza los módulos **sin perder da
 Todos los días a las 3:00 se guarda la base y los archivos en `/opt/laroca/backups` (últimos 7 días).
 Copiar un respaldo a tu computadora:
 ```bash
-ssh -i ~/.ssh/laroca_digitalocean laroca@20.115.4.10 "sudo cat /opt/laroca/backups/\$(sudo ls -t /opt/laroca/backups | grep sql | head -1)" > respaldo.sql.gz
+ssh -i ~/.ssh/laroca_servidor laroca@34.121.143.44 "sudo cat /opt/laroca/backups/\$(sudo ls -t /opt/laroca/backups | grep sql | head -1)" > respaldo.sql.gz
 ```
 
 ## Seguridad aplicada

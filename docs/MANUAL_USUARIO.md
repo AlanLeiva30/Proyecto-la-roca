@@ -17,6 +17,9 @@ Las imágenes usan datos ficticios de prueba.
 3. Pulsar **Iniciar sesión**. Se abre la aplicación **La Roca** en el **Panel**. Cada rol tiene
    su propio panel: el encargado ve **Mi gasolinera** y el administrador el **Panel del administrador**.
 
+Para ver lo que escribiste en la contraseña, tocá el **ojito 👁** al lado de la casilla (también
+está en las pantallas para crear usuarios y cambiar contraseñas).
+
 ![Inicio de sesión](capturas/01_inicio_sesion.png)
 
 | Rol | Puede |
@@ -93,6 +96,8 @@ Pulsá **Actualizar** para recalcular.
 - Los productos más urgentes aparecen primero.
 - En el teléfono se ve en tarjetas con foto.
 
+![Inventario con la columna En bodega](capturas/41_inventario_en_bodega.png)
+
 ![Inventario en el teléfono](capturas/21_movil_inventario.png)
 
 Al tocar un producto se abre su **detalle** con los **movimientos recientes**
@@ -127,6 +132,8 @@ Cada vez que vendés algo, registralo para que el inventario se descuente solo.
 ![Vender](capturas/28_vender.png)
 
 ![Vender en el teléfono](capturas/29_vender_movil.png)
+
+![Contador en el teléfono](capturas/35_contador_movil.png)
 
 ![Alerta de stock insuficiente](capturas/32_stock_insuficiente.png)
 
@@ -215,6 +222,8 @@ Todo queda en **Movimientos**.
 **Ventas** muestra las ventas de todas las gasolineras; **Reportes → Análisis de ventas** las
 agrupa por día, producto y gasolinera. Para corregir un error: abrir la venta → **Anular venta**
 con el motivo; los productos vuelven al inventario.
+
+![Ventas](capturas/31_ventas.png)
 
 ### 3.5 Alertas
 - Se crean **solas** cuando un producto baja del mínimo; suben a **crítico** si empeora y se

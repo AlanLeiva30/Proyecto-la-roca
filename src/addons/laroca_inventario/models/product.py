@@ -50,13 +50,6 @@ class ProductTemplate(models.Model):
             template.laroca_disponible_bodega = cantidad - reservado
             template.laroca_valor_bodega = cantidad * template.standard_price
 
-    def action_laroca_bodega_movimiento(self):
-        """Abre "Recibir mercadería" con los productos seleccionados (o todos)."""
-        accion = self.env['ir.actions.actions']._for_xml_id('laroca_inventario.action_laroca_bodega_recibir')
-        if self:
-            accion['context'] = dict(accion.get('context') or {}, laroca_productos=self.product_variant_ids.ids)
-        return accion
-
     def write(self, vals):
         res = super().write(vals)
         # Si un producto pasa a ser "inventariable", se agrega a todas las gasolineras.

@@ -42,13 +42,12 @@ class TestLarocaPanelReportes(TransactionCase):
     def test_panel_administrador(self):
         panel = self._panel(self.admin)
         Inventario = self.env['laroca.inventario']
-        self.assertEqual(panel.kpi_gasolineras, self.env['stock.warehouse'].search_count([('laroca_es_gasolinera', '=', True)]))
         self.assertEqual(panel.kpi_stock_bajo, Inventario.search_count([('estado', 'in', ('bajo', 'critico'))]))
         self.assertEqual(panel.kpi_criticos, Inventario.search_count([('estado', '=', 'critico')]))
-        self.assertIn(self.g1, panel.gasolinera_atencion_ids)
-        self.assertNotIn(self.g2, panel.gasolinera_atencion_ids)
+        self.assertIn(self.g1, panel.gasolinera_seguimiento_ids)
+        self.assertIn(self.g2, panel.gasolinera_seguimiento_ids)
         # Ordenadas por cantidad de críticos (de mayor a menor)
-        criticos = panel.gasolinera_atencion_ids.mapped('laroca_critico_count')
+        criticos = panel.gasolinera_seguimiento_ids.mapped('laroca_critico_count')
         self.assertEqual(criticos, sorted(criticos, reverse=True))
 
     def test_panel_abastecimientos_del_mes(self):
@@ -63,8 +62,8 @@ class TestLarocaPanelReportes(TransactionCase):
 
     def test_panel_encargado_limitado(self):
         panel = self._panel(self.encargado)
-        self.assertEqual(panel.kpi_gasolineras, 1)
-        self.assertNotIn(self.g1, panel.gasolinera_atencion_ids)
+        self.assertEqual(panel.nombre_gasolineras, self.g2.name)
+        self.assertNotIn(self.g1, panel.producto_pendiente_ids.gasolinera_id)
         self.assertEqual(panel.nombre_usuario, self.encargado.name.split()[0])
 
     def test_panel_distinto_por_rol(self):
@@ -106,10 +105,10 @@ class TestLarocaPanelReportes(TransactionCase):
 
     def test_acciones_del_panel(self):
         panel = self._panel(self.admin)
-        for metodo in ['action_ver_gasolineras', 'action_ver_productos', 'action_ver_stock_bajo', 'action_ver_criticos',
+        for metodo in ['action_ver_productos', 'action_ver_stock_bajo', 'action_ver_criticos',
                        'action_ver_abastecimientos_mes', 'action_ver_en_camino', 'action_ver_alertas',
                        'action_ver_inventario', 'action_reportes', 'action_ver_suficientes', 'action_ver_bajos',
-                       'action_ver_entregas', 'action_ver_usuarios', 'action_importar', 'action_ver_sin_conteo',
+                       'action_ver_usuarios', 'action_importar', 'action_ver_sin_conteo',
                        'action_vender', 'action_pedir', 'action_pedir_faltantes', 'action_ver_pedidos',
                        'action_ver_ventas', 'action_ver_ventas_hoy']:
             with self.subTest(metodo=metodo):

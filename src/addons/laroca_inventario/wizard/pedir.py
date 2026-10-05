@@ -60,29 +60,6 @@ class LarocaPedir(models.TransientModel):
             elif not self.completar_sugerido and linea.cantidad == linea.cantidad_sugerida:
                 linea.cantidad = 0
 
-    def _reabrir(self):
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Pedir productos'),
-            'res_model': self._name,
-            'res_id': self.id,
-            'view_mode': 'form',
-            'views': [(False, 'form')],
-            'target': 'new',
-            'context': {'dialog_size': 'extra-large'},
-        }
-
-    def action_completar_sugerido(self):
-        """Escribe la cantidad sugerida en los productos bajos y críticos."""
-        self.ensure_one()
-        pendientes = self.linea_ids.filtered(lambda l: l.estado in ('bajo', 'critico') and l.cantidad_sugerida > 0)
-        if not pendientes:
-            return accion_alerta('info', _('Todo bien'),
-                                 _('No hay productos por acabarse. Escribí a mano cuánto necesitás.'))
-        for linea in pendientes:
-            linea.cantidad = linea.cantidad_sugerida
-        return self._reabrir()
-
     def action_enviar(self):
         self.ensure_one()
         lineas = self.linea_ids.filtered(lambda l: l.cantidad > 0)

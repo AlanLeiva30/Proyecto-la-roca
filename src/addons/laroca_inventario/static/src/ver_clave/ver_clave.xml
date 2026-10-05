@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="web.CharField" t-inherit-mode="extension">
+        <xpath expr="//input" position="attributes">
+            <attribute name="t-att-type">props.isPassword and !larocaClave.ver ? 'password' : 'text'</attribute>
+        </xpath>
+        <!-- Ojito al lado de la casilla de contraseña -->
+        <xpath expr="//input" position="after">
+            <button t-if="props.isPassword" type="button" class="btn btn-link px-2 py-0 o_laroca_ver_clave"
+                    t-att-title="larocaClave.ver ? 'Ocultar contraseña' : 'Ver contraseña'"
+                    t-on-click="larocaAlternarClave">
+                <i t-attf-class="fa {{ larocaClave.ver ? 'fa-eye-slash' : 'fa-eye' }}"/>
+            </button>
+        </xpath>
+    </t>
+</templates>

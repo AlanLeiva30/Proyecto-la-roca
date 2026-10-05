@@ -231,10 +231,6 @@ class TestLarocaVentasPedidos(TransactionCase):
         form = Form(self.env['laroca.pedir'].with_user(self.encargado).with_context(**accion['context']))
         self.assertEqual(form.total_unidades, self.linea.cantidad_sugerida)
         wizard = form.save()
-        # "Completar con lo sugerido" también funciona después de borrar la cantidad
-        wizard.linea_ids.cantidad = 0
-        self.assertEqual(wizard.action_completar_sugerido()['res_id'], wizard.id)
-        self.assertEqual(wizard.total_unidades, self.linea.cantidad_sugerida)
         wizard.action_enviar()
         pedido = self.env['laroca.pedido'].search([('gasolinera_id', '=', self.g1.id)])
         self.assertEqual(pedido.linea_ids.product_id, self.llavero)

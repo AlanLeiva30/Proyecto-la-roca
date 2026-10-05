@@ -50,3 +50,11 @@
 .modal:has(.o_laroca_linea_rapida) .o_form_button_save_new {
     display: none;
 }
+
+// Casillas de contraseña con ojito al lado
+.o_field_char:has(> .o_laroca_ver_clave) {
+    display: flex;
+    align-items: center;
+    .o_input { flex: 1 1 auto; }
+    .o_laroca_ver_clave { flex: 0 0 auto; color: $o-brand-primary; }
+}

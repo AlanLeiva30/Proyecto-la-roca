@@ -26,7 +26,6 @@ class LarocaPanel(models.TransientModel):
     kpi_suficientes = fields.Integer('Productos con stock suficiente', compute='_compute_panel')
     kpi_bajos = fields.Integer('Productos en estado bajo', compute='_compute_panel')
     kpi_sin_conteo = fields.Integer(f'Gasolineras sin actualizar en {DIAS_SIN_CONTEO} días', compute='_compute_panel')
-    kpi_gasolineras = fields.Integer('Gasolineras', compute='_compute_panel')
     kpi_productos = fields.Integer('Productos', compute='_compute_panel')
     kpi_stock_bajo = fields.Integer('Productos con stock bajo', compute='_compute_panel')
     kpi_criticos = fields.Integer('En estado crítico', compute='_compute_panel')
@@ -38,8 +37,6 @@ class LarocaPanel(models.TransientModel):
     kpi_valor_gasolineras = fields.Monetary('Valor en gasolineras', compute='_compute_panel')
     kpi_valor_bodega = fields.Monetary('Valor en bodega central', compute='_compute_panel')
     kpi_valor_mes = fields.Monetary('Valor entregado este mes', compute='_compute_panel')
-    gasolinera_atencion_ids = fields.Many2many(
-        'stock.warehouse', string='Gasolineras que requieren atención', compute='_compute_panel')
     entrega_en_camino_ids = fields.Many2many(
         'laroca.entrega', string='Entregas en camino', compute='_compute_panel')
     kpi_pedidos = fields.Integer('Pedidos pendientes', compute='_compute_panel',
@@ -91,9 +88,6 @@ class LarocaPanel(models.TransientModel):
         entregadas_mes = Entrega.search([
             ('estado', '=', 'entregada'), ('fecha_entrega', '>=', self._inicio_del_mes_utc())])
         en_camino = Entrega.search([('estado', '=', 'en_camino')], order='fecha_programada, id')
-        # Gasolineras con productos pendientes: primero las de más críticos
-        atencion = gasolineras.filtered('laroca_pendiente_count').sorted(
-            key=lambda g: (-g.laroca_critico_count, -g.laroca_bajo_count, g.name))
         valor_gasolineras = Inventario._read_group([], [], ['valor_stock:sum'])[0][0] or 0.0
         es_admin = self._es_admin()
         valor_bodega = 0.0
@@ -138,7 +132,6 @@ class LarocaPanel(models.TransientModel):
             'kpi_valor_gasolineras': valor_gasolineras,
             'kpi_valor_bodega': valor_bodega,
             'kpi_valor_mes': sum(entregadas_mes.mapped('valor_total')),
-            'kpi_gasolineras': len(gasolineras),
             'kpi_productos': self.env['product.template'].search_count([('is_storable', '=', True)]),
             'kpi_stock_bajo': Inventario.search_count([('estado', 'in', ('bajo', 'critico'))]),
             'kpi_criticos': Inventario.search_count([('estado', '=', 'critico')]),
@@ -146,7 +139,6 @@ class LarocaPanel(models.TransientModel):
             'kpi_unidades_mes': round(sum(entregadas_mes.mapped('total_entregado'))),
             'kpi_en_camino': len(en_camino),
             'kpi_alertas': self.env['laroca.alerta'].search_count([('estado', 'in', ('abierta', 'en_proceso'))]),
-            'gasolinera_atencion_ids': atencion,
             'entrega_en_camino_ids': en_camino,
         }
         for panel in self:
@@ -226,9 +218,6 @@ class LarocaPanel(models.TransientModel):
             action['context'] = context
         return action
 
-    def action_ver_gasolineras(self):
-        return self._accion('laroca_inventario.action_laroca_gasolineras')
-
     def action_ver_productos(self):
         return self._accion('laroca_inventario.action_laroca_productos')
 
@@ -287,9 +276,6 @@ class LarocaPanel(models.TransientModel):
                             domain=[('fecha', '>=', fields.Datetime.to_string(self._inicio_del_dia_utc()))],
                             context={'searchpanel_default_estado': 'confirmada'})
 
-    def action_conteo(self):
-        return self._accion('laroca_inventario.action_laroca_conteo')
-
     def action_recibir_mercaderia(self):
         return self._accion('laroca_inventario.action_laroca_bodega_recibir')
 
@@ -299,14 +285,8 @@ class LarocaPanel(models.TransientModel):
     def action_preparar_entrega(self):
         return self._accion('laroca_inventario.action_laroca_preparar_entrega')
 
-    def action_ver_sugerencias(self):
-        return self._accion('laroca_inventario.action_laroca_sugerencias')
-
     def action_ver_inventario(self):
         return self._accion('laroca_inventario.action_laroca_inventario')
-
-    def action_ver_entregas(self):
-        return self._accion('laroca_inventario.action_laroca_entregas')
 
     def action_ver_usuarios(self):
         return self._accion('laroca_inventario.action_laroca_usuarios')

@@ -55,7 +55,7 @@ recepción de entrega, reportes PDF, importación desde Excel, cambiar contrase�
 | Iniciar / detener | `docker compose up -d` / `docker compose stop` |
 | Ver registros | `docker compose logs -f odoo` |
 | Aplicar cambios del código | `./scripts/actualizar.sh laroca_inventario,laroca_datos_prueba` |
-| Pruebas automáticas (base temporal) | `./scripts/pruebas.sh` — **88 pruebas** |
+| Pruebas automáticas (base temporal) | `./scripts/pruebas.sh` — **89 pruebas** |
 | Respaldo de la base | `docker compose exec -T db pg_dump -U odoo laroca > respaldo.sql` |
 | Borrar todo y empezar de cero | `docker compose down -v && ./scripts/inicializar.sh` |
 | Regenerar ilustraciones de productos | ver encabezado de `scripts/generar_imagenes_productos.py` |

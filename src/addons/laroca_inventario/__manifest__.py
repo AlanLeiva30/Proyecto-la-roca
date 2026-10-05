@@ -68,6 +68,8 @@ Etapa 1 del sistema de inventario y abastecimiento de Grupo La Roca.
             'laroca_inventario/static/src/contador/contador.scss',
             'laroca_inventario/static/src/busqueda_simple/busqueda_simple.js',
             'laroca_inventario/static/src/busqueda_simple/busqueda_simple.xml',
+            'laroca_inventario/static/src/ver_clave/ver_clave.js',
+            'laroca_inventario/static/src/ver_clave/ver_clave.xml',
         ],
     },
     'application': True,
