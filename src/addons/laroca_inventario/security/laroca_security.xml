@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================================================
+         Roles del sistema (aparecen en el formulario de usuario como
+         "La Roca: Encargado de sucursal / Administrador")
+         ============================================================ -->
+    <record id="module_category_laroca" model="ir.module.category">
+        <field name="name">La Roca</field>
+        <field name="description">Roles del sistema de inventario y abastecimiento.</field>
+        <field name="sequence">5</field>
+    </record>
+
+    <record id="group_laroca_encargado" model="res.groups">
+        <field name="name">Encargado de sucursal</field>
+        <field name="category_id" ref="module_category_laroca"/>
+        <field name="implied_ids" eval="[(4, ref('stock.group_stock_user'))]"/>
+        <field name="comment">Ve y actualiza solo el inventario de las gasolineras que tiene asignadas.</field>
+    </record>
+
+    <record id="group_laroca_admin" model="res.groups">
+        <field name="name">Administrador</field>
+        <field name="category_id" ref="module_category_laroca"/>
+        <field name="implied_ids" eval="[(4, ref('group_laroca_encargado')), (4, ref('stock.group_stock_manager')), (4, ref('base.group_erp_manager'))]"/>
+        <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        <field name="comment">Ve todas las gasolineras, administra el catálogo, las gasolineras y los usuarios.</field>
+    </record>
+
+    <!-- ============================================================
+         Reglas de registro (ir.rule)
+         Odoo combina con OR las reglas de grupo: el encargado solo ve
+         sus gasolineras; el administrador tiene una regla "todo" que
+         amplía el acceso.
+         ============================================================ -->
+
+    <record id="rule_inventario_encargado" model="ir.rule">
+        <field name="name">La Roca: Inventario por gasolinera - solo gasolineras asignadas</field>
+        <field name="model_id" ref="model_laroca_inventario"/>
+        <field name="groups" eval="[(4, ref('group_laroca_encargado'))]"/>
+        <field name="domain_force">[('gasolinera_id', 'in', user.laroca_gasolinera_ids.ids)]</field>
+    </record>
+    <record id="rule_inventario_admin" model="ir.rule">
+        <field name="name">La Roca: Inventario por gasolinera - administrador ve todo</field>
+        <field name="model_id" ref="model_laroca_inventario"/>
+        <field name="groups" eval="[(4, ref('group_laroca_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_warehouse_encargado" model="ir.rule">
+        <field name="name">La Roca: Gasolineras (almacenes) - solo gasolineras asignadas</field>
+        <field name="model_id" ref="stock.model_stock_warehouse"/>
+        <field name="groups" eval="[(4, ref('group_laroca_encargado'))]"/>
+        <field name="domain_force">[('id', 'in', user.laroca_gasolinera_ids.ids)]</field>
+    </record>
+    <record id="rule_warehouse_admin" model="ir.rule">
+        <field name="name">La Roca: Gasolineras (almacenes) - administrador ve todo</field>
+        <field name="model_id" ref="stock.model_stock_warehouse"/>
+        <field name="groups" eval="[(4, ref('group_laroca_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_location_encargado" model="ir.rule">
+        <field name="name">La Roca: Ubicaciones - solo gasolineras asignadas</field>
+        <field name="model_id" ref="stock.model_stock_location"/>
+        <field name="groups" eval="[(4, ref('group_laroca_encargado'))]"/>
+        <field name="domain_force">['|', ('warehouse_id', '=', False), ('warehouse_id', 'in', user.laroca_gasolinera_ids.ids)]</field>
+    </record>
+    <record id="rule_location_admin" model="ir.rule">
+        <field name="name">La Roca: Ubicaciones - administrador ve todo</field>
+        <field name="model_id" ref="stock.model_stock_location"/>
+        <field name="groups" eval="[(4, ref('group_laroca_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_quant_encargado" model="ir.rule">
+        <field name="name">La Roca: Existencias (quants) - solo gasolineras asignadas</field>
+        <field name="model_id" ref="stock.model_stock_quant"/>
+        <field name="groups" eval="[(4, ref('group_laroca_encargado'))]"/>
+        <field name="domain_force">['|', ('location_id.usage', 'not in', ('internal', 'transit')), ('location_id.warehouse_id', 'in', user.laroca_gasolinera_ids.ids)]</field>
+    </record>
+    <record id="rule_quant_admin" model="ir.rule">
+        <field name="name">La Roca: Existencias (quants) - administrador ve todo</field>
+        <field name="model_id" ref="stock.model_stock_quant"/>
+        <field name="groups" eval="[(4, ref('group_laroca_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_move_encargado" model="ir.rule">
+        <field name="name">La Roca: Movimientos de stock - solo gasolineras asignadas</field>
+        <field name="model_id" ref="stock.model_stock_move"/>
+        <field name="groups" eval="[(4, ref('group_laroca_encargado'))]"/>
+        <field name="domain_force">['|', ('location_id.warehouse_id', 'in', user.laroca_gasolinera_ids.ids), ('location_dest_id.warehouse_id', 'in', user.laroca_gasolinera_ids.ids)]</field>
+    </record>
+    <record id="rule_move_admin" model="ir.rule">
+        <field name="name">La Roca: Movimientos de stock - administrador ve todo</field>
+        <field name="model_id" ref="stock.model_stock_move"/>
+        <field name="groups" eval="[(4, ref('group_laroca_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_move_line_encargado" model="ir.rule">
+        <field name="name">La Roca: Líneas de movimiento - solo gasolineras asignadas</field>
+        <field name="model_id" ref="stock.model_stock_move_line"/>
+        <field name="groups" eval="[(4, ref('group_laroca_encargado'))]"/>
+        <field name="domain_force">['|', ('location_id.warehouse_id', 'in', user.laroca_gasolinera_ids.ids), ('location_dest_id.warehouse_id', 'in', user.laroca_gasolinera_ids.ids)]</field>
+    </record>
+    <record id="rule_move_line_admin" model="ir.rule">
+        <field name="name">La Roca: Líneas de movimiento - administrador ve todo</field>
+        <field name="model_id" ref="stock.model_stock_move_line"/>
+        <field name="groups" eval="[(4, ref('group_laroca_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_picking_encargado" model="ir.rule">
+        <field name="name">La Roca: Transferencias - solo gasolineras asignadas</field>
+        <field name="model_id" ref="stock.model_stock_picking"/>
+        <field name="groups" eval="[(4, ref('group_laroca_encargado'))]"/>
+        <field name="domain_force">['|', ('location_id.warehouse_id', 'in', user.laroca_gasolinera_ids.ids), ('location_dest_id.warehouse_id', 'in', user.laroca_gasolinera_ids.ids)]</field>
+    </record>
+    <record id="rule_picking_admin" model="ir.rule">
+        <field name="name">La Roca: Transferencias - administrador ve todo</field>
+        <field name="model_id" ref="stock.model_stock_picking"/>
+        <field name="groups" eval="[(4, ref('group_laroca_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_picking_type_encargado" model="ir.rule">
+        <field name="name">La Roca: Tipos de operación - solo gasolineras asignadas</field>
+        <field name="model_id" ref="stock.model_stock_picking_type"/>
+        <field name="groups" eval="[(4, ref('group_laroca_encargado'))]"/>
+        <field name="domain_force">['|', ('warehouse_id', '=', False), ('warehouse_id', 'in', user.laroca_gasolinera_ids.ids)]</field>
+    </record>
+    <record id="rule_picking_type_admin" model="ir.rule">
+        <field name="name">La Roca: Tipos de operación - administrador ve todo</field>
+        <field name="model_id" ref="stock.model_stock_picking_type"/>
+        <field name="groups" eval="[(4, ref('group_laroca_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_orderpoint_encargado" model="ir.rule">
+        <field name="name">La Roca: Reglas de reabastecimiento - solo gasolineras asignadas</field>
+        <field name="model_id" ref="stock.model_stock_warehouse_orderpoint"/>
+        <field name="groups" eval="[(4, ref('group_laroca_encargado'))]"/>
+        <field name="domain_force">[('warehouse_id', 'in', user.laroca_gasolinera_ids.ids)]</field>
+    </record>
+    <record id="rule_orderpoint_admin" model="ir.rule">
+        <field name="name">La Roca: Reglas de reabastecimiento - administrador ve todo</field>
+        <field name="model_id" ref="stock.model_stock_warehouse_orderpoint"/>
+        <field name="groups" eval="[(4, ref('group_laroca_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_alerta_encargado" model="ir.rule">
+        <field name="name">La Roca: Alertas - solo gasolineras asignadas</field>
+        <field name="model_id" ref="model_laroca_alerta"/>
+        <field name="groups" eval="[(4, ref('group_laroca_encargado'))]"/>
+        <field name="domain_force">[('gasolinera_id', 'in', user.laroca_gasolinera_ids.ids)]</field>
+    </record>
+    <record id="rule_alerta_admin" model="ir.rule">
+        <field name="name">La Roca: Alertas - administrador ve todo</field>
+        <field name="model_id" ref="model_laroca_alerta"/>
+        <field name="groups" eval="[(4, ref('group_laroca_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_entrega_encargado" model="ir.rule">
+        <field name="name">La Roca: Entregas - solo gasolineras asignadas</field>
+        <field name="model_id" ref="model_laroca_entrega"/>
+        <field name="groups" eval="[(4, ref('group_laroca_encargado'))]"/>
+        <field name="domain_force">[('gasolinera_id', 'in', user.laroca_gasolinera_ids.ids)]</field>
+    </record>
+    <record id="rule_entrega_admin" model="ir.rule">
+        <field name="name">La Roca: Entregas - administrador ve todo</field>
+        <field name="model_id" ref="model_laroca_entrega"/>
+        <field name="groups" eval="[(4, ref('group_laroca_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_entrega_linea_encargado" model="ir.rule">
+        <field name="name">La Roca: Productos de entregas - solo gasolineras asignadas</field>
+        <field name="model_id" ref="model_laroca_entrega_linea"/>
+        <field name="groups" eval="[(4, ref('group_laroca_encargado'))]"/>
+        <field name="domain_force">[('gasolinera_id', 'in', user.laroca_gasolinera_ids.ids)]</field>
+    </record>
+    <record id="rule_entrega_linea_admin" model="ir.rule">
+        <field name="name">La Roca: Productos de entregas - administrador ve todo</field>
+        <field name="model_id" ref="model_laroca_entrega_linea"/>
+        <field name="groups" eval="[(4, ref('group_laroca_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_pedido_encargado" model="ir.rule">
+        <field name="name">La Roca: Pedidos - solo gasolineras asignadas</field>
+        <field name="model_id" ref="model_laroca_pedido"/>
+        <field name="groups" eval="[(4, ref('group_laroca_encargado'))]"/>
+        <field name="domain_force">[('gasolinera_id', 'in', user.laroca_gasolinera_ids.ids)]</field>
+    </record>
+    <record id="rule_pedido_admin" model="ir.rule">
+        <field name="name">La Roca: Pedidos - administrador ve todo</field>
+        <field name="model_id" ref="model_laroca_pedido"/>
+        <field name="groups" eval="[(4, ref('group_laroca_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_pedido_linea_encargado" model="ir.rule">
+        <field name="name">La Roca: Productos de pedidos - solo gasolineras asignadas</field>
+        <field name="model_id" ref="model_laroca_pedido_linea"/>
+        <field name="groups" eval="[(4, ref('group_laroca_encargado'))]"/>
+        <field name="domain_force">[('gasolinera_id', 'in', user.laroca_gasolinera_ids.ids)]</field>
+    </record>
+    <record id="rule_pedido_linea_admin" model="ir.rule">
+        <field name="name">La Roca: Productos de pedidos - administrador ve todo</field>
+        <field name="model_id" ref="model_laroca_pedido_linea"/>
+        <field name="groups" eval="[(4, ref('group_laroca_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_venta_encargado" model="ir.rule">
+        <field name="name">La Roca: Ventas - solo gasolineras asignadas</field>
+        <field name="model_id" ref="model_laroca_venta"/>
+        <field name="groups" eval="[(4, ref('group_laroca_encargado'))]"/>
+        <field name="domain_force">[('gasolinera_id', 'in', user.laroca_gasolinera_ids.ids)]</field>
+    </record>
+    <record id="rule_venta_admin" model="ir.rule">
+        <field name="name">La Roca: Ventas - administrador ve todo</field>
+        <field name="model_id" ref="model_laroca_venta"/>
+        <field name="groups" eval="[(4, ref('group_laroca_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_venta_linea_encargado" model="ir.rule">
+        <field name="name">La Roca: Productos vendidos - solo gasolineras asignadas</field>
+        <field name="model_id" ref="model_laroca_venta_linea"/>
+        <field name="groups" eval="[(4, ref('group_laroca_encargado'))]"/>
+        <field name="domain_force">[('gasolinera_id', 'in', user.laroca_gasolinera_ids.ids)]</field>
+    </record>
+    <record id="rule_venta_linea_admin" model="ir.rule">
+        <field name="name">La Roca: Productos vendidos - administrador ve todo</field>
+        <field name="model_id" ref="model_laroca_venta_linea"/>
+        <field name="groups" eval="[(4, ref('group_laroca_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+</odoo>

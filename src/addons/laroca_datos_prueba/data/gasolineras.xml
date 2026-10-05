@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Datos FICTICIOS -->
+    <record id="gasolinera_centro" model="stock.warehouse">
+        <field name="name">La Roca Centro</field>
+        <field name="code">GCEN</field>
+        <field name="laroca_es_gasolinera" eval="True"/>
+        <field name="laroca_direccion">Calle Ficticia 101, Barrio El Centro</field>
+        <field name="laroca_municipio">San Salvador Centro</field>
+        <field name="laroca_departamento">San Salvador</field>
+        <field name="laroca_telefono">2200-0001</field>
+    </record>
+    <record id="gasolinera_norte" model="stock.warehouse">
+        <field name="name">La Roca Norte</field>
+        <field name="code">GNOR</field>
+        <field name="laroca_es_gasolinera" eval="True"/>
+        <field name="laroca_direccion">Carretera Ficticia km 12</field>
+        <field name="laroca_municipio">San Salvador Norte</field>
+        <field name="laroca_departamento">San Salvador</field>
+        <field name="laroca_telefono">2200-0002</field>
+    </record>
+    <record id="gasolinera_sur" model="stock.warehouse">
+        <field name="name">La Roca Sur</field>
+        <field name="code">GSUR</field>
+        <field name="laroca_es_gasolinera" eval="True"/>
+        <field name="laroca_direccion">Avenida Ficticia 45</field>
+        <field name="laroca_municipio">La Paz Centro</field>
+        <field name="laroca_departamento">La Paz</field>
+        <field name="laroca_telefono">2200-0003</field>
+    </record>
+    <record id="gasolinera_oriente" model="stock.warehouse">
+        <field name="name">La Roca Oriente</field>
+        <field name="code">GORI</field>
+        <field name="laroca_es_gasolinera" eval="True"/>
+        <field name="laroca_direccion">Bulevar Ficticio 300</field>
+        <field name="laroca_municipio">San Miguel Centro</field>
+        <field name="laroca_departamento">San Miguel</field>
+        <field name="laroca_telefono">2200-0004</field>
+    </record>
+    <record id="gasolinera_occidente" model="stock.warehouse">
+        <field name="name">La Roca Occidente</field>
+        <field name="code">GOCC</field>
+        <field name="laroca_es_gasolinera" eval="True"/>
+        <field name="laroca_direccion">Calle Ficticia Poniente 8</field>
+        <field name="laroca_municipio">Santa Ana Centro</field>
+        <field name="laroca_departamento">Santa Ana</field>
+        <field name="laroca_telefono">2200-0005</field>
+    </record>
+</odoo>

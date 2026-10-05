@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Pantalla "Preparar entrega" (administrador): qué llevar y hoja en PDF o Excel -->
+    <record id="view_laroca_preparar_entrega_form" model="ir.ui.view">
+        <field name="name">laroca.preparar.entrega.form</field>
+        <field name="model">laroca.preparar.entrega</field>
+        <field name="arch" type="xml">
+            <form string="Preparar entrega">
+                <div class="alert alert-info py-2" role="status">
+                    <i class="fa fa-info-circle me-1" title="Información"/>Para tus envíos propios (por ejemplo, llevar llaveros
+                    extra). Los <b>pedidos</b> de los encargados se atienden desde el pedido: <b>Aprobar y preparar entrega</b>.
+                </div>
+                <group>
+                    <group string="¿A dónde va?">
+                        <field name="gasolinera_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="lugar" invisible="not gasolinera_id"/>
+                        <field name="encargados" invisible="not gasolinera_id"/>
+                    </group>
+                    <group string="¿Cuándo y quién?">
+                        <field name="fecha_programada"/>
+                        <field name="responsable_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="notas" placeholder="Opcional: indicaciones para quien lleva la entrega"/>
+                        <field name="enviar"/>
+                    </group>
+                </group>
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2" invisible="not gasolinera_id">
+                    <div class="d-flex align-items-center gap-2 border rounded-pill px-3 py-1">
+                        <!-- autosave: false → llena las cantidades al instante (sin guardar) -->
+                        <field name="completar_sugerido" widget="boolean_toggle" options="{'autosave': false}" nolabel="1"/>
+                        <label for="completar_sugerido" class="fw-bold mb-0"><i class="fa fa-magic me-1" title="Sugerido"/>Completar con lo sugerido</label>
+                    </div>
+                    <field name="buscar" placeholder="Buscar producto…" class="w-auto"/>
+                    <field name="categ_id" options="{'no_create': True, 'no_open': True}" placeholder="Todas las categorías" class="w-auto"/>
+                </div>
+                <field name="linea_ids" nolabel="1" invisible="not gasolinera_id">
+                    <list editable="bottom" create="0" delete="0" decoration-bf="cantidad &gt; 0"
+                          decoration-danger="estado == 'critico'" decoration-warning="estado == 'bajo'">
+                        <field name="inventario_id" column_invisible="1"/>
+                        <field name="image_128" widget="image" options="{'size': [32, 32]}" string=" " readonly="1" width="44px"/>
+                        <field name="product_id" readonly="1" options="{'no_open': True}" context="{'display_default_code': False}"/>
+                        <field name="estado" widget="badge" optional="show" width="95px"
+                               decoration-success="estado == 'suficiente'" decoration-warning="estado == 'bajo'"
+                               decoration-danger="estado == 'critico'" decoration-muted="estado == 'sin_minimo'"/>
+                        <field name="stock_actual" width="95px"/>
+                        <field name="cantidad_sugerida" widget="laroca_usar_sugerido" options="{'destino': 'cantidad'}" width="95px"/>
+                        <field name="disponible_bodega" width="80px"/>
+                        <field name="cantidad" widget="laroca_contador" options="{'maximo': 'disponible_bodega', 'siempre': true}"
+                               width="150px"/>
+                    </list>
+                    <kanban create="0" delete="0">
+                        <field name="inventario_id"/>
+                        <templates>
+                            <t t-name="card" class="flex-row align-items-center">
+                                <field name="image_128" widget="image" options="{'size': [56, 56]}" class="me-2"/>
+                                <div class="flex-grow-1">
+                                    <field name="product_id" class="fw-bold" context="{'display_default_code': False}"/>
+                                    <div class="text-muted small">
+                                        Tiene <field name="stock_actual"/> · bodega <field name="disponible_bodega"/>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="small text-muted">Llevar</div>
+                                    <field name="cantidad" class="fs-4 fw-bold text-primary"/>
+                                </div>
+                            </t>
+                        </templates>
+                    </kanban>
+                    <form string="¿Cuántos llevás?" create="0" delete="0" class="o_laroca_linea_rapida">
+                        <field name="inventario_id" invisible="1"/>
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <field name="image_128" widget="image" options="{'size': [96, 96]}" readonly="1"/>
+                            <div>
+                                <h3 class="mb-1"><field name="product_id" readonly="1" options="{'no_open': True}"
+                                                        context="{'display_default_code': False}"/></h3>
+                                <div>En gasolinera: <field name="stock_actual" class="d-inline"/> · En bodega: <field name="disponible_bodega" class="d-inline"/></div>
+                                <div>Sugerido: <field name="cantidad_sugerida" class="d-inline" widget="laroca_usar_sugerido"
+                                                      options="{'destino': 'cantidad'}"/></div>
+                            </div>
+                        </div>
+                        <group>
+                            <field name="cantidad" string="Cantidad que llevo" widget="laroca_contador"
+                                   options="{'maximo': 'disponible_bodega'}"/>
+                        </group>
+                    </form>
+                </field>
+                <div class="alert alert-light border mt-2 mb-0" role="status" invisible="not total_unidades">
+                    <strong>Llevar (<field name="total_unidades" class="d-inline"/> unidades):</strong>
+                    <field name="resumen" class="d-inline"/>
+                </div>
+                <footer>
+                    <button name="action_generar_pdf" type="object" string="Generar PDF" class="btn-primary" icon="fa-file-pdf-o"
+                            data-hotkey="q"/>
+                    <button name="action_generar_excel" type="object" string="Generar Excel" class="btn-success" icon="fa-file-excel-o"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_laroca_preparar_entrega" model="ir.actions.act_window">
+        <field name="name">Preparar entrega</field>
+        <field name="res_model">laroca.preparar.entrega</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'dialog_size': 'extra-large'}</field>
+    </record>
+</odoo>

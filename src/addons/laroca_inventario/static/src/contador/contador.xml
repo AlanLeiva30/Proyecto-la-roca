@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="laroca_inventario.Contador">
+        <span t-if="props.readonly" t-esc="formattedValue"/>
+        <div t-else="" class="o_laroca_contador">
+            <button type="button" class="btn o_laroca_contador_btn" title="Quitar uno" aria-label="Quitar uno"
+                    t-att-disabled="!value" t-on-click.stop="() => this.sumar(-1)">
+                <i class="fa fa-minus"/>
+            </button>
+            <input t-on-focusin="onFocusIn" t-on-focusout="onFocusOut" t-att-id="props.id" t-ref="numpadDecimal"
+                   t-att-placeholder="props.placeholder" type="text" inputmode="decimal" class="o_input"
+                   autocomplete="off" t-on-click.stop=""/>
+            <button type="button" class="btn o_laroca_contador_btn" title="Agregar uno" aria-label="Agregar uno"
+                    t-on-click.stop="() => this.sumar(1)">
+                <i class="fa fa-plus"/>
+            </button>
+        </div>
+    </t>
+
+    <t t-name="laroca_inventario.UsarSugerido">
+        <button t-if="valor &gt; 0" type="button" t-on-click.stop="usar"
+                t-attf-class="btn btn-sm o_laroca_sugerido {{ usado ? 'btn-primary' : 'btn-outline-primary' }}"
+                title="Tocá para pedir esta cantidad">
+            <t t-esc="texto"/> <i class="fa fa-arrow-right ms-1"/>
+        </button>
+        <span t-else="" class="text-muted">0</span>
+    </t>
+</templates>

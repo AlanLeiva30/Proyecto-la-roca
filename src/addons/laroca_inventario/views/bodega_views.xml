@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ==================== PANEL DE LA BODEGA CENTRAL ==================== -->
+    <record id="view_laroca_panel_bodega_form" model="ir.ui.view">
+        <field name="name">laroca.panel.bodega.form</field>
+        <field name="model">laroca.panel.bodega</field>
+        <field name="arch" type="xml">
+            <form string="Bodega central" create="0" delete="0" edit="0" class="o_laroca_panel">
+                <sheet>
+                    <field name="currency_id" invisible="1"/>
+                    <div class="o_laroca_banner o_laroca_banner_bodega d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                        <div>
+                            <span class="o_laroca_etiqueta"><i class="fa fa-archive me-1" title="Bodega"/>Abastecimiento</span>
+                            <h2 class="mb-0 mt-1"><field name="nombre_bodega" class="d-inline"/></h2>
+                            <div class="o_laroca_banner_sub">Lo que hay para abastecer a las gasolineras.</div>
+                        </div>
+                        <button name="action_refrescar" type="object" string="Actualizar" icon="fa-refresh" class="btn-light"/>
+                    </div>
+                    <div class="row g-2 mb-4" groups="laroca_inventario.group_laroca_admin">
+                        <div class="col-6 col-lg">
+                            <button name="action_recibir" type="object" class="btn btn-primary w-100 o_laroca_acceso o_laroca_acceso_grande"
+                                    icon="fa-truck" string="Recibir mercadería"/>
+                        </div>
+                        <div class="col-6 col-lg">
+                            <button name="action_producto_nuevo" type="object" class="btn btn-success w-100 o_laroca_acceso o_laroca_acceso_grande"
+                                    icon="fa-plus-circle" string="Producto nuevo"/>
+                        </div>
+                        <div class="col-6 col-lg">
+                            <button name="action_contar" type="object" class="btn btn-outline-primary w-100 o_laroca_acceso o_laroca_acceso_grande"
+                                    icon="fa-list-ol" string="Contar bodega"/>
+                        </div>
+                        <div class="col-6 col-lg">
+                            <button name="action_importar" type="object" class="btn btn-outline-primary w-100 o_laroca_acceso o_laroca_acceso_grande"
+                                    icon="fa-file-excel-o" string="Importar desde Excel"/>
+                        </div>
+                        <div class="col-12 col-lg">
+                            <button name="action_ver_productos" type="object" class="btn btn-outline-primary w-100 o_laroca_acceso o_laroca_acceso_grande"
+                                    icon="fa-th-list" string="Ver todos los productos"/>
+                        </div>
+                    </div>
+                    <div class="mb-3" groups="!laroca_inventario.group_laroca_admin">
+                        <button name="action_ver_productos" type="object" class="btn btn-outline-primary o_laroca_acceso"
+                                icon="fa-th-list" string="Ver todos los productos de la bodega"/>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-lg-3">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <i class="fa fa-cubes fa-2x text-primary" title="Productos"/>
+                                        <field name="kpi_productos" class="fs-1 fw-bold text-primary"/>
+                                    </div>
+                                    <div class="fw-bold mt-2">Productos</div>
+                                    <div class="text-muted small">Con unidades en bodega</div>
+                                    <button name="action_ver_productos" type="object" string="Ver" class="btn btn-link p-0 mt-1"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <i class="fa fa-archive fa-2x text-success" title="Unidades"/>
+                                        <field name="kpi_unidades" class="fs-1 fw-bold text-success"/>
+                                    </div>
+                                    <div class="fw-bold mt-2">Unidades</div>
+                                    <div class="text-muted small">En total (incluye lo reservado)</div>
+                                    <button name="action_ver_productos" type="object" string="Ver" class="btn btn-link p-0 mt-1"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <i class="fa fa-ban fa-2x text-danger" title="Sin stock"/>
+                                        <field name="kpi_sin_stock" class="fs-1 fw-bold text-danger"/>
+                                    </div>
+                                    <div class="fw-bold mt-2">Sin stock</div>
+                                    <div class="text-muted small">No se pueden mandar</div>
+                                    <button name="action_ver_sin_stock" type="object" string="Ver" class="btn btn-link p-0 mt-1"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <i class="fa fa-shopping-basket fa-2x text-warning" title="Conviene comprar"/>
+                                        <field name="kpi_comprar" class="fs-1 fw-bold text-warning"/>
+                                    </div>
+                                    <div class="fw-bold mt-2">Conviene comprar</div>
+                                    <div class="text-muted small">No alcanza para las gasolineras</div>
+                                    <button name="action_ver_comprar" type="object" string="Ver" class="btn btn-link p-0 mt-1"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-6">
+                            <div class="card h-100 shadow-sm border-info">
+                                <div class="card-body">
+                                    <div class="text-muted small"><i class="fa fa-truck text-info" title="Reservado"/> Reservado para entregas en camino</div>
+                                    <span class="fs-3 fw-bold text-info"><field name="kpi_reservado" class="d-inline"/> unidades</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6" groups="laroca_inventario.group_laroca_admin">
+                            <div class="card h-100 shadow-sm border-primary">
+                                <div class="card-body">
+                                    <div class="text-muted small"><i class="fa fa-money text-primary" title="Valor"/> Valor de la bodega (costo)</div>
+                                    <field name="kpi_valor" class="fs-3 fw-bold text-primary"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12 col-lg-7">
+                            <h4><i class="fa fa-shopping-basket text-warning" title="Comprar"/> Conviene comprar</h4>
+                            <field name="comprar_ids" readonly="1" nolabel="1" invisible="not comprar_ids">
+                                <list>
+                                    <field name="image_128" widget="image" options="{'size': [32, 32]}" string=" " width="44px"/>
+                                    <field name="name" string="Producto"/>
+                                    <field name="laroca_disponible_bodega" string="Hay disponible"/>
+                                    <field name="laroca_sugerido_gasolineras" string="Necesitan"/>
+                                    <field name="laroca_faltante_bodega" string="Faltan" class="fw-bold text-danger"/>
+                                </list>
+                            </field>
+                            <div class="alert alert-success mb-0" role="status" invisible="comprar_ids">
+                                <i class="fa fa-check-circle me-1" title="Bien"/>La bodega alcanza para todo lo que necesitan las gasolineras.
+                            </div>
+                            <button name="action_comprar_recibir" type="object" string="Ya llegaron: recibir estos productos"
+                                    icon="fa-truck" class="btn-primary mt-2" invisible="not comprar_ids"
+                                    groups="laroca_inventario.group_laroca_admin"/>
+                        </div>
+                        <div class="col-12 col-lg-5">
+                            <h4><i class="fa fa-history text-primary" title="Recepciones"/> Últimas recepciones</h4>
+                            <field name="recepcion_ids" readonly="1" nolabel="1" invisible="not recepcion_ids">
+                                <list>
+                                    <field name="name" string="Recepción"/>
+                                    <field name="origin" string="Proveedor / factura"/>
+                                    <field name="date_done" string="Fecha"/>
+                                </list>
+                            </field>
+                            <div class="text-muted small" invisible="recepcion_ids">Todavía no se registró mercadería recibida.</div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_laroca_panel_bodega" model="ir.actions.server">
+        <field name="name">Bodega central</field>
+        <field name="model_id" ref="model_laroca_panel_bodega"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_abrir_panel()</field>
+        <field name="groups_id" eval="[(4, ref('group_laroca_encargado'))]"/>
+    </record>
+
+    <!-- ==================== PRODUCTO NUEVO ==================== -->
+    <record id="view_laroca_producto_nuevo_form" model="ir.ui.view">
+        <field name="name">laroca.producto.nuevo.form</field>
+        <field name="model">laroca.producto.nuevo</field>
+        <field name="arch" type="xml">
+            <form string="Producto nuevo">
+                <p class="text-muted">El producto se agrega al catálogo y a todas las gasolineras. Si ya te llegaron
+                    unidades, escribilas abajo y se suman a la bodega central.</p>
+                <div class="d-flex gap-3">
+                    <field name="image_1920" widget="image" options="{'preview_image': 'image_1920', 'size': [120, 120]}"/>
+                    <div class="flex-grow-1">
+                        <label for="name"/>
+                        <h2><field name="name" placeholder="Ej.: Llavero de silicona"/></h2>
+                    </div>
+                </div>
+                <group>
+                    <group string="Producto">
+                        <field name="default_code" placeholder="Ej.: LLA-003"/>
+                        <field name="categ_id" options="{'no_create': True, 'no_open': True}" placeholder="Elegí una categoría"/>
+                        <field name="list_price"/>
+                        <field name="standard_price"/>
+                    </group>
+                    <group string="Lo que llegó a la bodega">
+                        <field name="cantidad" widget="laroca_contador"/>
+                        <field name="proveedor" placeholder="Opcional"/>
+                        <field name="referencia" placeholder="Opcional: n.º de factura"/>
+                    </group>
+                    <group string="Niveles en cada gasolinera">
+                        <field name="laroca_stock_minimo" widget="laroca_contador"/>
+                        <field name="laroca_stock_objetivo" widget="laroca_contador"/>
+                    </group>
+                    <group string="Descripción">
+                        <field name="description_sale" nolabel="1" colspan="2" placeholder="Para el catálogo (opcional)"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_crear" type="object" string="Agregar producto" class="btn-success" icon="fa-check"
+                            data-hotkey="q"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_laroca_producto_nuevo" model="ir.actions.act_window">
+        <field name="name">Producto nuevo</field>
+        <field name="res_model">laroca.producto.nuevo</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'dialog_size': 'large'}</field>
+    </record>
+</odoo>

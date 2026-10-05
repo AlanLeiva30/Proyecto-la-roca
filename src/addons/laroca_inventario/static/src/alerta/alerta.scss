@@ -1,0 +1,75 @@
+// Alerta estilo "SweetAlert" de La Roca
+$laroca-alerta-colores: (
+    success: #28a745,
+    error: #dc3545,
+    warning: #f0ad4e,
+    info: #0B3D91,
+);
+
+.o_laroca_alerta {
+    border-radius: 1rem;
+    animation: o_laroca_alerta_entrada 0.25s ease-out;
+    .o_laroca_alerta_icono {
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        border: 5px solid currentColor;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        animation: o_laroca_alerta_icono 0.5s ease-out;
+    }
+    .o_laroca_alerta_detalle {
+        max-width: 26rem;
+        li {
+            padding: 0.35rem 0.75rem;
+            border-radius: 0.5rem;
+            background: rgba(0, 0, 0, 0.04);
+            margin-bottom: 0.35rem;
+        }
+    }
+    @each $tipo, $color in $laroca-alerta-colores {
+        .o_laroca_alerta_#{$tipo} {
+            color: $color;
+            background: rgba($color, 0.08);
+        }
+        .o_laroca_alerta_boton_#{$tipo} {
+            background: $color;
+            border-color: $color;
+            color: #fff;
+            &:hover, &:focus { filter: brightness(0.92); color: #fff; }
+        }
+    }
+}
+
+@keyframes o_laroca_alerta_entrada {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes o_laroca_alerta_icono {
+    0% { transform: scale(0.3); opacity: 0; }
+    60% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); }
+}
+
+// También en el celular se ve como una tarjeta centrada: Odoo abre los diálogos a pantalla
+// completa en el teléfono (clase o_modal_full), por eso hace falta !important.
+.modal.o_modal_full:has(.o_laroca_alerta) {
+    .modal-dialog {
+        width: 92vw !important;
+        max-width: 32rem !important;
+        height: auto !important;
+        min-height: 0 !important;
+        margin: 12vh auto !important;
+    }
+    .modal-content.o_laroca_alerta {
+        height: auto !important;
+        min-height: 0 !important;
+        border-radius: 1rem !important;
+    }
+}
+.o_laroca_alerta h2 {
+    font-size: 1.6rem;
+}

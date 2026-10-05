@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Imágenes ficticias de los productos (solo a los que no tienen imagen) -->
+    <function model="laroca.inventario" name="_datos_prueba_cargar_imagenes"/>
+</odoo>

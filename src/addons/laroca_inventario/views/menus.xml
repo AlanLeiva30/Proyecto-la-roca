@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_laroca_root" name="La Roca" sequence="1"
+              web_icon="laroca_inventario,static/description/icon.png"
+              groups="group_laroca_encargado"/>
+
+    <menuitem id="menu_laroca_panel" name="Panel" parent="menu_laroca_root" sequence="5"
+              action="action_laroca_panel"/>
+    <menuitem id="menu_laroca_inventario" name="Inventario" parent="menu_laroca_root" sequence="10"
+              action="action_laroca_inventario"/>
+    <menuitem id="menu_laroca_vender" name="Vender" parent="menu_laroca_root" sequence="7"
+              action="action_laroca_vender"/>
+    <menuitem id="menu_laroca_conteo" name="Conteo rápido" parent="menu_laroca_root" sequence="12"
+              action="action_laroca_conteo" groups="group_laroca_admin"/>
+    <menuitem id="menu_laroca_ventas" name="Ventas" parent="menu_laroca_root" sequence="13"
+              action="action_laroca_ventas"/>
+    <menuitem id="menu_laroca_abastecimiento" name="Abastecimiento" parent="menu_laroca_root" sequence="15"/>
+    <menuitem id="menu_laroca_pedidos" name="Pedidos" parent="menu_laroca_abastecimiento" sequence="5"
+              action="action_laroca_pedidos"/>
+    <menuitem id="menu_laroca_alertas" name="Alertas" parent="menu_laroca_abastecimiento" sequence="10"
+              action="action_laroca_alertas"/>
+    <menuitem id="menu_laroca_bodega" name="Bodega central" parent="menu_laroca_abastecimiento" sequence="3"
+              action="action_laroca_panel_bodega"/>
+    <menuitem id="menu_laroca_preparar_entrega" name="Preparar entrega" parent="menu_laroca_abastecimiento" sequence="15"
+              action="action_laroca_preparar_entrega" groups="group_laroca_admin"/>
+    <menuitem id="menu_laroca_sugerencias" name="Sugerencias" parent="menu_laroca_abastecimiento" sequence="20"
+              action="action_laroca_sugerencias" groups="group_laroca_admin"/>
+    <menuitem id="menu_laroca_entregas" name="Entregas" parent="menu_laroca_abastecimiento" sequence="30"
+              action="action_laroca_entregas"/>
+    <menuitem id="menu_laroca_historial" name="Historial de abastecimientos" parent="menu_laroca_abastecimiento" sequence="40"
+              action="action_laroca_historial_entregas"/>
+    <menuitem id="menu_laroca_movimientos" name="Movimientos" parent="menu_laroca_root" sequence="20"
+              action="action_laroca_movimientos"/>
+    <menuitem id="menu_laroca_reportes" name="Reportes" parent="menu_laroca_root" sequence="25"/>
+    <menuitem id="menu_laroca_reporte_pdf" name="Imprimir reportes (PDF)" parent="menu_laroca_reportes" sequence="10"
+              action="action_laroca_reporte_wizard"/>
+    <menuitem id="menu_laroca_analisis_inventario" name="Análisis de inventario" parent="menu_laroca_reportes" sequence="20"
+              action="action_laroca_analisis_inventario"/>
+    <menuitem id="menu_laroca_analisis_abastecimientos" name="Análisis de abastecimientos" parent="menu_laroca_reportes" sequence="30"
+              action="action_laroca_analisis_abastecimientos"/>
+    <menuitem id="menu_laroca_analisis_alertas" name="Análisis de alertas" parent="menu_laroca_reportes" sequence="40"
+              action="action_laroca_analisis_alertas" groups="group_laroca_admin"/>
+    <menuitem id="menu_laroca_analisis_ventas" name="Análisis de ventas" parent="menu_laroca_reportes" sequence="50"
+              action="action_laroca_analisis_ventas"/>
+    <menuitem id="menu_laroca_gasolineras" name="Gasolineras" parent="menu_laroca_root" sequence="30"
+              action="action_laroca_gasolineras"/>
+
+    <menuitem id="menu_laroca_catalogo" name="Catálogo" parent="menu_laroca_root" sequence="40"/>
+    <menuitem id="menu_laroca_productos" name="Productos" parent="menu_laroca_catalogo" sequence="10"
+              action="action_laroca_productos"/>
+    <menuitem id="menu_laroca_categorias" name="Categorías" parent="menu_laroca_catalogo" sequence="20"
+              action="action_laroca_categorias" groups="group_laroca_admin"/>
+
+    <menuitem id="menu_laroca_config" name="Configuración" parent="menu_laroca_root" sequence="90"
+              groups="group_laroca_admin"/>
+    <menuitem id="menu_laroca_niveles" name="Stock mínimo por gasolinera" parent="menu_laroca_config" sequence="5"
+              action="action_laroca_niveles"/>
+    <menuitem id="menu_laroca_parametros" name="Parámetros" parent="menu_laroca_config" sequence="8"
+              action="action_laroca_parametros"/>
+    <menuitem id="menu_laroca_importar" name="Importar desde Excel" parent="menu_laroca_config" sequence="9"
+              action="action_laroca_importar"/>
+    <menuitem id="menu_laroca_usuarios" name="Usuarios" parent="menu_laroca_config" sequence="10"
+              action="action_laroca_usuarios"/>
+    <menuitem id="menu_laroca_sincronizar" name="Sincronizar inventario" parent="menu_laroca_config" sequence="20"
+              action="action_laroca_sincronizar"/>
+</odoo>

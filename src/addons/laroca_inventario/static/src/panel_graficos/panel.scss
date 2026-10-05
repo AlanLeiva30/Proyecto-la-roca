@@ -1,0 +1,39 @@
+// Estilos del Panel general de La Roca
+.o_laroca_panel {
+    // Las listas del panel no muestran las filas vacías de relleno que agrega Odoo.
+    .o_field_x2many_list .o_list_table tbody tr:not(.o_data_row) {
+        display: none;
+    }
+    .card {
+        transition: box-shadow 0.2s;
+        &:hover {
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.12) !important;
+        }
+    }
+}
+
+// Encabezado de color de cada panel: azul para el administrador, verde para el encargado
+.o_laroca_banner {
+    border-radius: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    color: #fff;
+    h2, .o_field_widget { color: #fff; }
+    .o_laroca_banner_sub { opacity: 0.9; }
+    .o_laroca_etiqueta {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 1rem;
+        padding: 0.15rem 0.75rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+}
+.o_laroca_banner_admin {
+    background: linear-gradient(135deg, #0B3D91 0%, #1d5fc4 100%);
+}
+.o_laroca_banner_encargado {
+    background: linear-gradient(135deg, #1e7e45 0%, #2fa560 100%);
+}
+.o_laroca_banner_bodega {
+    background: linear-gradient(135deg, #8a5300 0%, #c9861a 100%);
+}

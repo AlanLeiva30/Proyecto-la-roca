@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="base.main_company" model="res.company">
+        <field name="name">Grupo La Roca</field>
+        <field name="country_id" ref="base.sv"/>
+        <field name="city">San Salvador</field>
+        <field name="currency_id" ref="base.USD"/>
+        <field name="email">contacto@laroca.test</field>
+        <field name="logo" type="base64" file="laroca_datos_prueba/static/img/logo.png"/>
+    </record>
+
+    <record id="base.user_admin" model="res.users">
+        <field name="lang">es_419</field>
+        <field name="tz">America/El_Salvador</field>
+    </record>
+
+    <!-- La bodega principal de Odoo pasa a ser la Bodega Central (no es gasolinera) -->
+    <record id="stock.warehouse0" model="stock.warehouse">
+        <field name="name">Bodega Central</field>
+        <field name="code">BC</field>
+        <field name="laroca_es_gasolinera" eval="False"/>
+    </record>
+</odoo>

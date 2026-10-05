@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ==================== PANTALLA "VENDER" ==================== -->
+    <record id="view_laroca_vender_form" model="ir.ui.view">
+        <field name="name">laroca.vender.form</field>
+        <field name="model">laroca.vender</field>
+        <field name="arch" type="xml">
+            <form string="Vender">
+                <group>
+                    <group>
+                        <field name="gasolinera_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="buscar" placeholder="Escribí parte del nombre, por ejemplo: llavero"/>
+                    </group>
+                    <group>
+                        <field name="categ_id" options="{'no_create': True, 'no_open': True}" placeholder="Todas"/>
+                    </group>
+                </group>
+                <p class="text-muted small mb-1">
+                    Escribí cuántas unidades vendiste de cada producto en <b>Vender</b> (en el celular, tocá el
+                    producto). Al registrar la venta se descuentan del inventario.
+                </p>
+                <field name="linea_ids" nolabel="1">
+                    <list editable="bottom" create="0" delete="0" decoration-bf="cantidad &gt; 0"
+                          decoration-success="cantidad &gt; 0 and cantidad &lt;= disponible"
+                          decoration-danger="cantidad &gt; disponible">
+                        <field name="inventario_id" column_invisible="1"/>
+                        <field name="image_128" widget="image" options="{'size': [32, 32]}" string=" " readonly="1" width="44px"/>
+                        <field name="product_id" readonly="1" options="{'no_open': True}" context="{'display_default_code': False}"/>
+                        <field name="currency_id" column_invisible="1"/>
+                        <field name="precio" widget="monetary" options="{'currency_field': 'currency_id'}" width="80px"/>
+                        <field name="disponible" force_save="1" string="Hay" width="50px"/>
+                        <field name="cantidad" widget="laroca_contador" options="{'maximo': 'disponible', 'siempre': true}" width="150px"/>
+                        <field name="quedan" class="fw-bold" decoration-danger="quedan &lt; 0" decoration-warning="quedan == 0 and cantidad &gt; 0"
+                               decoration-success="quedan &gt; 0 and cantidad &gt; 0" width="70px"/>
+                        <field name="aviso" string=" " decoration-danger="quedan &lt; 0" decoration-warning="quedan == 0"
+                               class="fw-bold" width="125px"/>
+                        <field name="subtotal" width="90px"/>
+                    </list>
+                    <!-- En el celular: una tarjeta por producto; al tocarla se escribe la cantidad -->
+                    <kanban create="0" delete="0">
+                        <field name="inventario_id"/>
+                        <templates>
+                            <t t-name="card" class="flex-row align-items-center">
+                                <field name="image_128" widget="image" options="{'size': [56, 56]}" class="me-2"/>
+                                <div class="flex-grow-1">
+                                    <field name="product_id" class="fw-bold" context="{'display_default_code': False}"/>
+                                    <div class="text-muted small">
+                                        <field name="currency_id" invisible="1"/>
+                                        <field name="precio" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        · Hay <field name="disponible" force_save="1"/>
+                                        <t t-if="record.cantidad.raw_value"> · Quedan <field name="quedan"/></t>
+                                    </div>
+                                    <field name="aviso" class="small fw-bold text-danger"/>
+                                </div>
+                                <!-- En rojo si se quiere vender más de lo que hay -->
+                                <div t-attf-class="text-end {{ record.cantidad.raw_value &gt; record.disponible.raw_value ? 'text-danger' : 'text-success' }}">
+                                    <div class="small text-muted">Vender</div>
+                                    <field name="cantidad" class="fs-4 fw-bold"/>
+                                </div>
+                            </t>
+                        </templates>
+                    </kanban>
+                    <form string="¿Cuántos vendiste?" create="0" delete="0" class="o_laroca_linea_rapida">
+                        <field name="inventario_id" invisible="1"/>
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <field name="image_128" widget="image" options="{'size': [96, 96]}" readonly="1"/>
+                            <div>
+                                <h3 class="mb-1"><field name="product_id" readonly="1" options="{'no_open': True}"
+                                                        context="{'display_default_code': False}"/></h3>
+                                <field name="currency_id" invisible="1"/>
+                                <div>Precio: <field name="precio" widget="monetary" options="{'currency_field': 'currency_id'}" class="d-inline"/></div>
+                                <div>Hay: <field name="disponible" class="d-inline" force_save="1"/></div>
+                            </div>
+                        </div>
+                        <group>
+                            <field name="cantidad" string="Cantidad vendida" widget="laroca_contador"
+                                   options="{'maximo': 'disponible'}" width="150px"/>
+                            <field name="quedan" class="fw-bold" decoration-danger="quedan &lt; 0"/>
+                            <field name="aviso" string=" " class="fw-bold text-danger" invisible="not aviso"/>
+                            <field name="subtotal"/>
+                        </group>
+                    </form>
+                </field>
+                <div class="d-flex justify-content-end align-items-baseline gap-3 fs-4 mt-2">
+                    <span class="text-muted fs-6">Unidades: <field name="total_unidades" class="d-inline fw-bold"/></span>
+                    <span>Total a cobrar: <field name="total" class="d-inline fw-bold text-success"/></span>
+                </div>
+                <footer>
+                    <button name="action_vender" type="object" string="Registrar venta" class="btn-success" icon="fa-check"
+                            data-hotkey="q"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_laroca_vender" model="ir.actions.act_window">
+        <field name="name">Vender</field>
+        <field name="res_model">laroca.vender</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'dialog_size': 'extra-large'}</field>
+    </record>
+
+    <!-- ==================== VENTAS REGISTRADAS ==================== -->
+    <record id="view_laroca_venta_list" model="ir.ui.view">
+        <field name="name">laroca.venta.list</field>
+        <field name="model">laroca.venta</field>
+        <field name="arch" type="xml">
+            <list string="Ventas" create="0" delete="0" decoration-muted="estado == 'anulada'">
+                <header>
+                    <button name="%(laroca_inventario.action_laroca_vender)d" type="action" string="Vender"
+                            class="btn-success" icon="fa-shopping-cart" display="always"/>
+                </header>
+                <field name="name"/>
+                <field name="fecha"/>
+                <field name="gasolinera_id"/>
+                <field name="vendedor_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="total_unidades" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="total" sum="Total"/>
+                <field name="estado" widget="badge" decoration-success="estado == 'confirmada'" decoration-muted="estado == 'anulada'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_laroca_venta_form" model="ir.ui.view">
+        <field name="name">laroca.venta.form</field>
+        <field name="model">laroca.venta</field>
+        <field name="arch" type="xml">
+            <form string="Venta" create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_abrir_anulacion" type="object" string="Anular venta" icon="fa-undo"
+                            invisible="estado != 'confirmada'" groups="laroca_inventario.group_laroca_admin"/>
+                    <field name="estado" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="estado != 'anulada'">
+                        Venta anulada: los productos volvieron al inventario. Motivo: <field name="motivo_anulacion" class="d-inline"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="gasolinera_id" options="{'no_open': True}"/>
+                            <field name="vendedor_id"/>
+                        </group>
+                        <group>
+                            <field name="fecha"/>
+                            <field name="picking_id" groups="laroca_inventario.group_laroca_admin"/>
+                            <field name="picking_anulacion_id" invisible="not picking_anulacion_id"
+                                   groups="laroca_inventario.group_laroca_admin"/>
+                        </group>
+                    </group>
+                    <field name="linea_ids">
+                        <list>
+                            <field name="product_id" context="{'display_default_code': False}"/>
+                            <field name="cantidad" sum="Total"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="precio_unitario"/>
+                            <field name="subtotal" sum="Total"/>
+                        </list>
+                    </field>
+                    <group class="oe_subtotal_footer">
+                        <field name="currency_id" invisible="1"/>
+                        <field name="total_unidades"/>
+                        <field name="total" class="fs-4"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_laroca_venta_search" model="ir.ui.view">
+        <field name="name">laroca.venta.search</field>
+        <field name="model">laroca.venta</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="gasolinera_id"/>
+                <field name="vendedor_id"/>
+                <field name="linea_ids" string="Producto" filter_domain="[('linea_ids.product_id', 'ilike', self)]"/>
+                <filter name="hoy" string="Hoy" domain="[('fecha', '&gt;=', (context_today()).strftime('%Y-%m-%d'))]"/>
+                <filter name="fecha" string="Fecha" date="fecha"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_gasolinera" string="Gasolinera" context="{'group_by': 'gasolinera_id'}"/>
+                    <filter name="group_vendedor" string="Vendedor" context="{'group_by': 'vendedor_id'}"/>
+                    <filter name="group_dia" string="Día" context="{'group_by': 'fecha:day'}"/>
+                </group>
+                <searchpanel>
+                    <field name="estado" string="Estado" icon="fa-flag" enable_counters="1"/>
+                    <field name="gasolinera_id" string="Gasolinera" icon="fa-building" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_laroca_ventas" model="ir.actions.act_window">
+        <field name="name">Ventas</field>
+        <field name="res_model">laroca.venta</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_laroca_venta_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Todavía no hay ventas</p>
+            <p>Pulsá <b>Vender</b>, escribí cuántas unidades vendiste y el inventario se descuenta solo.</p>
+        </field>
+    </record>
+
+    <record id="view_laroca_venta_anulacion_form" model="ir.ui.view">
+        <field name="name">laroca.venta.anulacion.form</field>
+        <field name="model">laroca.venta.anulacion</field>
+        <field name="arch" type="xml">
+            <form string="Anular venta">
+                <field name="venta_id" invisible="1"/>
+                <p>Los productos de esta venta vuelven al inventario de la gasolinera.</p>
+                <group>
+                    <field name="motivo" placeholder="Por ejemplo: se registró dos veces."/>
+                </group>
+                <footer>
+                    <button name="action_confirmar" type="object" string="Anular venta" class="btn-danger"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== ANÁLISIS DE VENTAS ==================== -->
+    <record id="view_laroca_venta_linea_graph" model="ir.ui.view">
+        <field name="name">laroca.venta.linea.graph</field>
+        <field name="model">laroca.venta.linea</field>
+        <field name="arch" type="xml">
+            <graph string="Ventas" type="bar" stacked="1">
+                <field name="fecha" interval="day"/>
+                <field name="gasolinera_id"/>
+                <field name="subtotal" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_laroca_venta_linea_pivot" model="ir.ui.view">
+        <field name="name">laroca.venta.linea.pivot</field>
+        <field name="model">laroca.venta.linea</field>
+        <field name="arch" type="xml">
+            <pivot string="Ventas por producto">
+                <field name="product_id" type="row"/>
+                <field name="gasolinera_id" type="col"/>
+                <field name="cantidad" type="measure"/>
+                <field name="subtotal" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_laroca_venta_linea_list" model="ir.ui.view">
+        <field name="name">laroca.venta.linea.list</field>
+        <field name="model">laroca.venta.linea</field>
+        <field name="arch" type="xml">
+            <list string="Productos vendidos" create="0" edit="0" delete="0">
+                <field name="fecha"/>
+                <field name="venta_id"/>
+                <field name="gasolinera_id"/>
+                <field name="product_id"/>
+                <field name="cantidad" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="subtotal" sum="Total"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_laroca_venta_linea_search" model="ir.ui.view">
+        <field name="name">laroca.venta.linea.search</field>
+        <field name="model">laroca.venta.linea</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="gasolinera_id"/>
+                <field name="categ_id"/>
+                <filter name="fecha" string="Fecha" date="fecha"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_producto" string="Producto" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_gasolinera" string="Gasolinera" context="{'group_by': 'gasolinera_id'}"/>
+                    <filter name="group_categoria" string="Categoría" context="{'group_by': 'categ_id'}"/>
+                </group>
+                <searchpanel view_types="list,graph,pivot">
+                    <field name="gasolinera_id" string="Gasolinera" icon="fa-building" enable_counters="1"/>
+                    <field name="categ_id" string="Categoría" icon="fa-tags" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_laroca_analisis_ventas" model="ir.actions.act_window">
+        <field name="name">Análisis de ventas</field>
+        <field name="res_model">laroca.venta.linea</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="domain">[('estado', '=', 'confirmada')]</field>
+        <field name="search_view_id" ref="view_laroca_venta_linea_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_laroca_venta_linea_graph')}),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_laroca_venta_linea_pivot')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_laroca_venta_linea_list')})]"/>
+    </record>
+</odoo>

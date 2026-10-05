@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Hoja de entrega en PDF: para preparar los productos y firmar la recepción -->
+    <record id="action_report_laroca_entrega" model="ir.actions.report">
+        <field name="name">Hoja de entrega</field>
+        <field name="model">laroca.entrega</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">laroca_inventario.report_laroca_entrega</field>
+        <field name="report_file">laroca_inventario.report_laroca_entrega</field>
+        <field name="print_report_name">'Entrega %s' % object.name</field>
+        <field name="binding_model_id" ref="model_laroca_entrega"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_laroca_entrega">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="entrega">
+                <t t-set="datos" t-value="entrega._datos_hoja()"/>
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="mb-1">Hoja de entrega <span t-field="entrega.name"/></h2>
+                        <p class="text-muted mb-3">Productos que se llevan desde <span t-field="entrega.bodega_id.name"/>.</p>
+                        <!-- Para qué gasolinera, el lugar y el pedido -->
+                        <table class="table table-sm table-bordered mb-3">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 22%; background-color: #E8EEF8;">Gasolinera</th>
+                                    <td style="width: 28%;"><strong t-esc="datos['gasolinera']"/></td>
+                                    <th style="width: 22%; background-color: #E8EEF8;">Fecha de entrega</th>
+                                    <td><span t-field="entrega.fecha_programada"/></td>
+                                </tr>
+                                <tr>
+                                    <th style="background-color: #E8EEF8;">Lugar</th>
+                                    <td><span t-esc="datos['lugar'] or '—'"/><br t-if="datos['telefono']"/>
+                                        <span t-if="datos['telefono']">Tel. <span t-esc="datos['telefono']"/></span></td>
+                                    <th style="background-color: #E8EEF8;">Lleva la entrega</th>
+                                    <td><span t-field="entrega.responsable_id.name"/></td>
+                                </tr>
+                                <tr>
+                                    <th style="background-color: #E8EEF8;">Encargado</th>
+                                    <td><span t-esc="datos['encargado'] or '—'"/></td>
+                                    <th style="background-color: #E8EEF8;">Pedido</th>
+                                    <td>
+                                        <t t-if="datos['envio_admin']"><strong t-esc="datos['pedido']"/> (envío del administrador)</t>
+                                        <t t-elif="datos['pedido']"><strong t-esc="datos['pedido']"/> (<span t-esc="datos['pedido_por']"/>)</t>
+                                        <t t-else="">Sin pedido (entrega del administrador)</t>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="fs-5 p-2" style="background-color: #F4F7FB; border-left: 5px solid #0B3D91;">
+                            <strong>Llevar:</strong> <span t-esc="datos['resumen']"/>
+                        </p>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th style="background-color: #0B3D91; color: #FFFFFF;">Código</th>
+                                    <th style="background-color: #0B3D91; color: #FFFFFF;">Producto</th>
+                                    <th class="text-end" style="background-color: #0B3D91; color: #FFFFFF;">Cantidad</th>
+                                    <th class="text-end" style="background-color: #0B3D91; color: #FFFFFF;">Recibida</th>
+                                    <th class="text-center" style="background-color: #0B3D91; color: #FFFFFF;">Preparado ✓</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="entrega.linea_ids.filtered(lambda l: l.cantidad &gt; 0)" t-as="linea">
+                                    <td><span t-field="linea.default_code"/></td>
+                                    <td><span t-field="linea.product_id.name"/></td>
+                                    <td class="text-end"><strong t-esc="'%g' % linea.cantidad"/></td>
+                                    <td class="text-end">
+                                        <span t-if="entrega.estado == 'entregada'" t-esc="'%g' % linea.cantidad_entregada"/>
+                                    </td>
+                                    <td class="text-center">☐</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="2">Total de unidades</th>
+                                    <th class="text-end"><span t-esc="'%g' % entrega.total_unidades"/></th>
+                                    <th class="text-end"><span t-if="entrega.estado == 'entregada'" t-esc="'%g' % entrega.total_entregado"/></th>
+                                    <th/>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <p t-if="entrega.notas"><strong>Notas:</strong> <span t-field="entrega.notas"/></p>
+                        <div class="row mt-5">
+                            <div class="col-6 text-center">______________________________<br/>Entregado por</div>
+                            <div class="col-6 text-center">______________________________<br/>Recibido por (encargado)</div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

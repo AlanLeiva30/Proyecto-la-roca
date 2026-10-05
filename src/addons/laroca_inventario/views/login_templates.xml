@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inicio de sesión más claro: se pide el "Usuario" (no un correo) -->
+    <template id="login_laroca" inherit_id="web.login" name="Login La Roca">
+        <xpath expr="//label[@for='login']" position="replace">
+            <label for="login" class="form-label">Usuario</label>
+        </xpath>
+        <xpath expr="//input[@name='login']" position="attributes">
+            <attribute name="placeholder">Ej.: encargado.centro</attribute>
+        </xpath>
+        <xpath expr="//input[@name='password']" position="attributes">
+            <attribute name="placeholder">Tu contraseña</attribute>
+        </xpath>
+    </template>
+</odoo>

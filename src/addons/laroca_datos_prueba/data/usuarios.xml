@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Usuarios FICTICIOS de prueba. Contraseña de prueba documentada en README.md.
+         Cambiarlas o eliminar estos usuarios antes de usar el sistema en producción. -->
+    <record id="usuario_administrador" model="res.users">
+        <field name="name">Juan Pérez</field>
+        <field name="login">administrador</field>
+        <field name="password">LaRoca2026</field>
+        <field name="email">administrador@laroca.test</field>
+        <field name="lang">es_419</field>
+        <field name="tz">America/El_Salvador</field>
+        <field name="groups_id" eval="[(6, 0, [ref('base.group_user'), ref('laroca_inventario.group_laroca_admin')])]"/>
+    </record>
+
+    <record id="usuario_encargado_centro" model="res.users">
+        <field name="name">Carlos López</field>
+        <field name="login">encargado.centro</field>
+        <field name="password">LaRoca2026</field>
+        <field name="email">centro@laroca.test</field>
+        <field name="lang">es_419</field>
+        <field name="tz">America/El_Salvador</field>
+        <field name="groups_id" eval="[(6, 0, [ref('base.group_user'), ref('laroca_inventario.group_laroca_encargado')])]"/>
+        <field name="laroca_gasolinera_ids" eval="[(6, 0, [ref('gasolinera_centro')])]"/>
+    </record>
+
+    <record id="usuario_encargado_norte" model="res.users">
+        <field name="name">María Hernández</field>
+        <field name="login">encargado.norte</field>
+        <field name="password">LaRoca2026</field>
+        <field name="email">norte@laroca.test</field>
+        <field name="lang">es_419</field>
+        <field name="tz">America/El_Salvador</field>
+        <field name="groups_id" eval="[(6, 0, [ref('base.group_user'), ref('laroca_inventario.group_laroca_encargado')])]"/>
+        <field name="laroca_gasolinera_ids" eval="[(6, 0, [ref('gasolinera_norte')])]"/>
+    </record>
+
+    <!-- Un encargado con dos gasolineras, para probar acceso múltiple -->
+    <record id="usuario_encargado_sur" model="res.users">
+        <field name="name">José Ramírez</field>
+        <field name="login">encargado.sur</field>
+        <field name="password">LaRoca2026</field>
+        <field name="email">sur@laroca.test</field>
+        <field name="lang">es_419</field>
+        <field name="tz">America/El_Salvador</field>
+        <field name="groups_id" eval="[(6, 0, [ref('base.group_user'), ref('laroca_inventario.group_laroca_encargado')])]"/>
+        <field name="laroca_gasolinera_ids" eval="[(6, 0, [ref('gasolinera_sur'), ref('gasolinera_oriente')])]"/>
+    </record>
+</odoo>

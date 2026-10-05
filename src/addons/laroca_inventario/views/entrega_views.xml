@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_laroca_entrega_list" model="ir.ui.view">
+        <field name="name">laroca.entrega.list</field>
+        <field name="model">laroca.entrega</field>
+        <field name="arch" type="xml">
+            <list string="Entregas" decoration-info="estado == 'en_camino'" decoration-muted="estado == 'cancelada'"
+                  decoration-success="estado == 'entregada'">
+                <field name="name"/>
+                <field name="fecha_programada"/>
+                <field name="gasolinera_id"/>
+                <field name="responsable_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="total_productos"/>
+                <field name="total_unidades" sum="Total"/>
+                <field name="total_entregado" sum="Total" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="valor_total" sum="Total" optional="show" groups="laroca_inventario.group_laroca_admin"/>
+                <field name="fecha_entrega" optional="show"/>
+                <field name="estado" widget="badge" decoration-info="estado == 'en_camino'"
+                       decoration-success="estado == 'entregada'" decoration-muted="estado == 'cancelada'"/>
+                <button name="action_marcar_entregada" type="object" string="Entregado ✓" class="btn-success btn-sm"
+                        invisible="estado != 'en_camino'"
+                        confirm="¿Llegó todo lo enviado? La entrega queda como entregada y se suma al inventario de la gasolinera."/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_laroca_entrega_form" model="ir.ui.view">
+        <field name="name">laroca.entrega.form</field>
+        <field name="model">laroca.entrega</field>
+        <field name="arch" type="xml">
+            <form string="Entrega">
+                <header>
+                    <button name="action_confirmar" type="object" string="Confirmar y enviar" class="btn-primary"
+                            invisible="estado != 'borrador'" groups="laroca_inventario.group_laroca_admin"
+                            confirm="Se reservará el stock en la bodega y se avisará al encargado. ¿Continuar?"/>
+                    <button name="action_marcar_entregada" type="object" string="Entregado ✓" class="btn-success"
+                            invisible="estado != 'en_camino'"
+                            confirm="¿Llegó todo lo enviado? La entrega queda como entregada y se suma al inventario de la gasolinera."/>
+                    <button name="action_abrir_recepcion" type="object" string="Llegó distinto (corregir)"
+                            icon="fa-pencil" invisible="estado != 'en_camino'"/>
+                    <button name="action_descargar_excel" type="object" string="Excel" icon="fa-file-excel-o"
+                            invisible="estado == 'cancelada'"/>
+                    <button name="%(laroca_inventario.action_report_laroca_entrega)d" type="action" string="Imprimir hoja"
+                            icon="fa-print" invisible="estado == 'cancelada'"/>
+                    <button name="action_cancelar" type="object" string="Cancelar entrega"
+                            invisible="estado not in ('borrador', 'en_camino')" groups="laroca_inventario.group_laroca_admin"
+                            confirm="¿Cancelar esta entrega? El stock reservado en bodega se libera."/>
+                    <button name="action_volver_borrador" type="object" string="Volver a borrador"
+                            invisible="estado != 'cancelada'" groups="laroca_inventario.group_laroca_admin"/>
+                    <field name="estado" widget="statusbar" statusbar_visible="borrador,en_camino,entregada"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_ver_transferencia" type="object" class="oe_stat_button" icon="fa-truck"
+                                string="Transferencia" invisible="not picking_id" groups="laroca_inventario.group_laroca_admin"/>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <!-- En el teléfono Odoo esconde los botones de la cabecera: este queda siempre a la vista -->
+                    <button name="action_marcar_entregada" type="object" string="Entregado ✓"
+                            class="btn btn-success w-100 mb-2 d-md-none" invisible="estado != 'en_camino'"
+                            confirm="¿Llegó todo lo enviado? La entrega queda como entregada y se suma al inventario de la gasolinera."/>
+                    <button name="action_abrir_recepcion" type="object" string="Llegó distinto (corregir)" icon="fa-pencil"
+                            class="btn btn-secondary w-100 mb-3 d-md-none" invisible="estado != 'en_camino'"/>
+                    <group>
+                        <group>
+                            <field name="gasolinera_id" readonly="estado != 'borrador'" options="{'no_create': True}"/>
+                            <field name="bodega_id" readonly="estado != 'borrador'" options="{'no_create': True}"
+                                   groups="laroca_inventario.group_laroca_admin"/>
+                            <field name="responsable_id" readonly="estado not in ('borrador', 'en_camino')" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="fecha_programada" readonly="estado not in ('borrador', 'en_camino')"/>
+                            <field name="fecha_entrega" invisible="estado != 'entregada'"/>
+                            <field name="recibido_por_id" invisible="estado != 'entregada'"/>
+                            <field name="picking_id" invisible="not picking_id" groups="laroca_inventario.group_laroca_admin"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Productos" name="productos">
+                            <field name="linea_ids" readonly="estado != 'borrador'">
+                                <list editable="bottom">
+                                    <field name="default_code" optional="show" string="Código"/>
+                                    <field name="product_id" options="{'no_create': True}" context="{'display_default_code': False}"/>
+                                    <field name="stock_gasolinera" optional="show" string="En gasolinera"/>
+                                    <field name="cantidad_sugerida" optional="show"/>
+                                    <field name="disponible_bodega" optional="show" string="En bodega"
+                                           decoration-danger="disponible_bodega &lt; cantidad"/>
+                                    <field name="cantidad" sum="Total" string="Enviar" widget="laroca_contador" width="150px"/>
+                                    <field name="cantidad_entregada" sum="Total" string="Entregada"
+                                           column_invisible="parent.estado == 'borrador'"/>
+                                    <field name="uom_id" optional="hide"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="costo_unitario" optional="hide" groups="laroca_inventario.group_laroca_admin"/>
+                                    <field name="valor" optional="show" sum="Total" groups="laroca_inventario.group_laroca_admin"/>
+                                </list>
+                                <!-- En el teléfono Odoo usa estas tarjetas en lugar de la tabla -->
+                                <kanban>
+                                    <templates>
+                                        <t t-name="card">
+                                            <field name="product_id" class="fw-bold" context="{'display_default_code': False}"/>
+                                            <div class="d-flex justify-content-between text-muted small">
+                                                <span>Enviar: <field name="cantidad" class="fw-bold text-body"/></span>
+                                                <span>Entregada: <field name="cantidad_entregada"/></span>
+                                            </div>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                            </field>
+                            <group class="oe_subtotal_footer">
+                                <field name="total_productos"/>
+                                <field name="total_unidades"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="valor_total" groups="laroca_inventario.group_laroca_admin"/>
+                            </group>
+                        </page>
+                        <page string="Alertas atendidas" name="alertas" invisible="not alerta_ids">
+                            <field name="alerta_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="product_id"/>
+                                    <field name="nivel" widget="badge" decoration-danger="nivel == 'critico'" decoration-warning="nivel == 'bajo'"/>
+                                    <field name="estado" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notas" name="notas">
+                            <field name="notas" placeholder="Indicaciones para el personal de entrega..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_laroca_entrega_calendar" model="ir.ui.view">
+        <field name="name">laroca.entrega.calendar</field>
+        <field name="model">laroca.entrega</field>
+        <field name="arch" type="xml">
+            <calendar string="Entregas" date_start="fecha_programada" color="gasolinera_id" mode="month" quick_create="0">
+                <field name="gasolinera_id" filters="1"/>
+                <field name="estado"/>
+                <field name="total_unidades"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_laroca_entrega_search" model="ir.ui.view">
+        <field name="name">laroca.entrega.search</field>
+        <field name="model">laroca.entrega</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="gasolinera_id"/>
+                <field name="linea_ids" string="Producto" filter_domain="[('linea_ids.product_id', 'ilike', self)]"/>
+                <filter name="fecha" string="Fecha programada" date="fecha_programada"/>
+                <filter name="fecha_entrega" string="Fecha de entrega" date="fecha_entrega"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_gasolinera" string="Gasolinera" context="{'group_by': 'gasolinera_id'}"/>
+                    <filter name="group_estado" string="Estado" context="{'group_by': 'estado'}"/>
+                    <filter name="group_mes" string="Mes" context="{'group_by': 'fecha_programada:month'}"/>
+                </group>
+                <searchpanel>
+                    <field name="estado" string="Estado" icon="fa-flag" enable_counters="1"/>
+                    <field name="gasolinera_id" string="Gasolinera" icon="fa-building" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_laroca_entregas" model="ir.actions.act_window">
+        <field name="name">Entregas</field>
+        <field name="res_model">laroca.entrega</field>
+        <field name="view_mode">list,form,calendar</field>
+        <field name="search_view_id" ref="view_laroca_entrega_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No hay entregas pendientes</p>
+            <p>Creá una entrega desde <b>Abastecimiento → Sugerencias</b> (seleccionando productos)
+               o con el botón <b>Preparar entrega</b> de una gasolinera.</p>
+        </field>
+    </record>
+
+    <!-- Historial de abastecimientos: producto por producto -->
+    <record id="view_laroca_entrega_linea_list" model="ir.ui.view">
+        <field name="name">laroca.entrega.linea.list</field>
+        <field name="model">laroca.entrega.linea</field>
+        <field name="arch" type="xml">
+            <list string="Historial de abastecimientos" create="0" edit="0" delete="0" default_order="fecha_entrega desc">
+                <field name="fecha_entrega"/>
+                <field name="entrega_id"/>
+                <field name="gasolinera_id"/>
+                <field name="default_code" optional="show"/>
+                <field name="product_id"/>
+                <field name="categ_id" optional="hide"/>
+                <field name="cantidad" string="Enviada" sum="Total"/>
+                <field name="cantidad_entregada" string="Entregada" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="valor" sum="Total" optional="show" groups="laroca_inventario.group_laroca_admin"/>
+                <field name="uom_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_laroca_entrega_linea_pivot" model="ir.ui.view">
+        <field name="name">laroca.entrega.linea.pivot</field>
+        <field name="model">laroca.entrega.linea</field>
+        <field name="arch" type="xml">
+            <pivot string="Abastecimientos">
+                <field name="gasolinera_id" type="row"/>
+                <field name="fecha_entrega" interval="month" type="col"/>
+                <field name="cantidad_entregada" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_laroca_entrega_linea_search" model="ir.ui.view">
+        <field name="name">laroca.entrega.linea.search</field>
+        <field name="model">laroca.entrega.linea</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="gasolinera_id"/>
+                <field name="entrega_id"/>
+                <filter name="fecha_entrega" string="Fecha de entrega" date="fecha_entrega"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_gasolinera" string="Gasolinera" context="{'group_by': 'gasolinera_id'}"/>
+                    <filter name="group_producto" string="Producto" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_mes" string="Mes" context="{'group_by': 'fecha_entrega:month'}"/>
+                </group>
+                <searchpanel view_types="list,graph,pivot">
+                    <field name="gasolinera_id" string="Gasolinera" icon="fa-building" enable_counters="1"/>
+                    <field name="categ_id" string="Categoría" icon="fa-tags" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_laroca_historial_entregas" model="ir.actions.act_window">
+        <field name="name">Historial de abastecimientos</field>
+        <field name="res_model">laroca.entrega.linea</field>
+        <field name="view_mode">list,pivot</field>
+        <field name="domain">[('estado', '=', 'entregada')]</field>
+        <field name="search_view_id" ref="view_laroca_entrega_linea_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Todavía no hay entregas recibidas</p>
+        </field>
+    </record>
+
+    <!-- Asistente de recepción -->
+    <record id="view_laroca_recepcion_form" model="ir.ui.view">
+        <field name="name">laroca.recepcion.form</field>
+        <field name="model">laroca.recepcion</field>
+        <field name="arch" type="xml">
+            <form string="Confirmar recepción">
+                <field name="entrega_id" invisible="1"/>
+                <p class="text-muted">
+                    Revisá lo que llegó a <field name="gasolinera_id" readonly="1" class="fw-bold" options="{'no_open': True}"/>
+                    y corregí la cantidad recibida si falta algo.
+                </p>
+                <field name="linea_ids">
+                    <list editable="bottom" create="0" delete="0">
+                        <field name="entrega_linea_id" column_invisible="1"/>
+                        <field name="product_id" options="{'no_open': True}"/>
+                        <field name="cantidad_enviada"/>
+                        <field name="cantidad_recibida" widget="laroca_contador" options="{'maximo': 'cantidad_enviada', 'siempre': true}" width="150px"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_confirmar" type="object" string="Confirmar recepción" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

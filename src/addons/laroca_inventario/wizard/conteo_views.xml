@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_laroca_conteo_form" model="ir.ui.view">
+        <field name="name">laroca.conteo.form</field>
+        <field name="model">laroca.conteo</field>
+        <field name="arch" type="xml">
+            <form string="Conteo rápido">
+                <group>
+                    <group>
+                        <field name="gasolinera_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="motivo"/>
+                    </group>
+                    <group>
+                        <field name="categ_id" options="{'no_create': True, 'no_open': True}" placeholder="Todas"/>
+                        <field name="solo_pendientes"/>
+                    </group>
+                </group>
+                <p class="text-muted small mb-1">
+                    Escribí la cantidad que hay en la gasolinera en la columna <b>Contado</b>.
+                    Los productos sin cambios quedan como "conteo confirmado".
+                </p>
+                <field name="linea_ids" nolabel="1">
+                    <list editable="bottom" create="0" delete="0"
+                          decoration-warning="diferencia &lt; 0" decoration-success="diferencia &gt; 0">
+                        <field name="inventario_id" column_invisible="1"/>
+                        <field name="default_code" optional="show"/>
+                        <field name="product_id" readonly="1" options="{'no_open': True}"
+                               context="{'display_default_code': False}"/>
+                        <field name="stock_minimo" optional="hide"/>
+                        <field name="stock_sistema"/>
+                        <field name="cantidad_contada" widget="laroca_contador" options="{'siempre': true}" width="150px"/>
+                        <field name="diferencia"/>
+                    </list>
+                </field>
+                <div class="text-end text-muted">Productos con cambios: <field name="total_cambios" class="d-inline fw-bold"/></div>
+                <footer>
+                    <button name="action_guardar" type="object" string="Guardar conteo" class="btn-primary" data-hotkey="q"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_laroca_conteo" model="ir.actions.act_window">
+        <field name="name">Conteo rápido</field>
+        <field name="res_model">laroca.conteo</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'dialog_size': 'extra-large'}</field>
+    </record>
+</odoo>

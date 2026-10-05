@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <!-- Menú de filtros sin opciones avanzadas (ver busqueda_simple.js) -->
+    <t t-inherit="web.SearchBarMenu" t-inherit-mode="extension">
+        <xpath expr="//DropdownItem[contains(@class, 'o_add_custom_filter')]" position="attributes">
+            <attribute name="t-if">larocaAvanzado</attribute>
+        </xpath>
+        <xpath expr="//div[contains(@class, 'o_filter_menu')]/t[@t-if='filterItems.length']" position="attributes">
+            <attribute name="t-if">filterItems.length and larocaAvanzado</attribute>
+        </xpath>
+        <xpath expr="//t[@t-if='!hideCustomGroupBy and fields.length']" position="attributes">
+            <attribute name="t-if">!hideCustomGroupBy and fields.length and larocaAvanzado</attribute>
+        </xpath>
+        <xpath expr="//div[contains(@class, 'o_favorite_menu')]" position="attributes">
+            <attribute name="t-if">larocaAvanzado</attribute>
+        </xpath>
+    </t>
+</templates>

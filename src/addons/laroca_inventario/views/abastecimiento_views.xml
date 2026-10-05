@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ==================== ALERTAS ==================== -->
+    <record id="view_laroca_alerta_list" model="ir.ui.view">
+        <field name="name">laroca.alerta.list</field>
+        <field name="model">laroca.alerta</field>
+        <field name="arch" type="xml">
+            <list string="Alertas de abastecimiento" create="0" delete="0" edit="0" expand="1"
+                  decoration-danger="estado != 'resuelta' and nivel == 'critico'"
+                  decoration-warning="estado != 'resuelta' and nivel == 'bajo'"
+                  decoration-muted="estado == 'resuelta'">
+                <field name="name"/>
+                <field name="fecha_alerta"/>
+                <field name="gasolinera_id"/>
+                <field name="product_id"/>
+                <field name="nivel" widget="badge" decoration-danger="nivel == 'critico'" decoration-warning="nivel == 'bajo'"/>
+                <field name="stock_actual"/>
+                <field name="stock_minimo"/>
+                <field name="cantidad_sugerida"/>
+                <field name="estado" widget="badge" decoration-info="estado == 'abierta'"
+                       decoration-primary="estado == 'en_proceso'" decoration-success="estado == 'resuelta'"/>
+                <field name="entrega_id" optional="show"/>
+                <field name="fecha_resolucion" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_laroca_alerta_form" model="ir.ui.view">
+        <field name="name">laroca.alerta.form</field>
+        <field name="model">laroca.alerta</field>
+        <field name="arch" type="xml">
+            <form string="Alerta de abastecimiento" create="0" delete="0" edit="0">
+                <header>
+                    <field name="estado" widget="statusbar" statusbar_visible="abierta,en_proceso,resuelta"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Crítico" bg_color="text-bg-danger" invisible="nivel != 'critico' or estado == 'resuelta'"/>
+                    <widget name="web_ribbon" title="Bajo" bg_color="text-bg-warning" invisible="nivel != 'bajo' or estado == 'resuelta'"/>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                        <h3><field name="product_id" options="{'no_open': True}"/> — <field name="gasolinera_id" options="{'no_open': True}"/></h3>
+                    </div>
+                    <group>
+                        <group string="Situación actual">
+                            <field name="nivel"/>
+                            <field name="stock_actual"/>
+                            <field name="stock_minimo"/>
+                            <field name="cantidad_sugerida" class="fw-bold"/>
+                            <field name="linea_id" string="Ver inventario"/>
+                            <field name="entrega_id" invisible="not entrega_id"/>
+                        </group>
+                        <group string="Cuando se generó">
+                            <field name="fecha_alerta"/>
+                            <field name="stock_al_alertar"/>
+                            <field name="stock_minimo_al_alertar"/>
+                            <field name="fecha_resolucion" invisible="estado != 'resuelta'"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_laroca_alerta_search" model="ir.ui.view">
+        <field name="name">laroca.alerta.search</field>
+        <field name="model">laroca.alerta</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="gasolinera_id"/>
+                <field name="name"/>
+                <filter name="abiertas" string="Pendientes" domain="[('estado', 'in', ('abierta', 'en_proceso'))]"/>
+                <separator/>
+                <filter name="criticas" string="Críticas" domain="[('nivel', '=', 'critico')]"/>
+                <filter name="bajas" string="Bajas" domain="[('nivel', '=', 'bajo')]"/>
+                <separator/>
+                <filter name="hoy" string="Generadas hoy" domain="[('fecha_alerta', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="fecha" string="Fecha" date="fecha_alerta"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_gasolinera" string="Gasolinera" context="{'group_by': 'gasolinera_id'}"/>
+                    <filter name="group_nivel" string="Nivel" context="{'group_by': 'nivel'}"/>
+                    <filter name="group_producto" string="Producto" context="{'group_by': 'product_id'}"/>
+                </group>
+                <searchpanel view_types="list,graph,pivot">
+                    <field name="estado" string="Estado" icon="fa-flag" enable_counters="1"/>
+                    <field name="gasolinera_id" string="Gasolinera" icon="fa-building" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_laroca_alertas" model="ir.actions.act_window">
+        <field name="name">Alertas de abastecimiento</field>
+        <field name="res_model">laroca.alerta</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_laroca_alerta_search"/>
+        <field name="context">{'searchpanel_default_estado': 'abierta'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No hay alertas abiertas</p>
+            <p>Cuando un producto quede por debajo de su stock mínimo, aparecerá aquí automáticamente.</p>
+        </field>
+    </record>
+
+    <!-- ==================== SUGERENCIAS ==================== -->
+    <record id="view_laroca_sugerencia_list" model="ir.ui.view">
+        <field name="name">laroca.inventario.sugerencia.list</field>
+        <field name="model">laroca.inventario</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <list string="Sugerencias de abastecimiento" create="0" delete="0" edit="0" expand="1"
+                  default_order="gasolinera_id, prioridad, product_id"
+                  decoration-danger="estado == 'critico'" decoration-warning="estado == 'bajo'">
+                <header>
+                    <button name="action_crear_entregas" type="object" string="Crear entrega" class="btn-primary"
+                            icon="fa-truck" groups="laroca_inventario.group_laroca_admin"/>
+                </header>
+                <field name="prioridad" column_invisible="1"/>
+                <field name="gasolinera_id"/>
+                <field name="default_code" optional="show"/>
+                <field name="product_id" context="{'display_default_code': False}"/>
+                <field name="estado" widget="badge" decoration-warning="estado == 'bajo'" decoration-danger="estado == 'critico'"/>
+                <field name="stock_actual" string="Stock actual"/>
+                <field name="stock_minimo" string="Mínimo"/>
+                <field name="stock_objetivo" string="Objetivo" optional="show"/>
+                <field name="cantidad_sugerida" string="Llevar" sum="Total a llevar" class="fw-bold"/>
+                <field name="cantidad_en_entrega" string="Ya en entrega" optional="show"
+                       decoration-info="cantidad_en_entrega &gt; 0"/>
+                <field name="disponible_bodega" string="En bodega" optional="show"/>
+                <field name="uom_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_laroca_sugerencias" model="ir.actions.act_window">
+        <field name="name">Sugerencias de abastecimiento</field>
+        <field name="res_model">laroca.inventario</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('estado', 'in', ('bajo', 'critico'))]</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="view_laroca_inventario_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_laroca_sugerencia_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_laroca_inventario_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No hay productos por abastecer</p>
+            <p>Todas las gasolineras tienen stock igual o mayor a su mínimo.</p>
+        </field>
+    </record>
+
+    <!-- ==================== NIVELES (stock mínimo editable) ==================== -->
+    <record id="view_laroca_niveles_list" model="ir.ui.view">
+        <field name="name">laroca.inventario.niveles.list</field>
+        <field name="model">laroca.inventario</field>
+        <field name="priority">60</field>
+        <field name="arch" type="xml">
+            <list string="Stock mínimo por gasolinera" editable="bottom" create="0" delete="0" multi_edit="1"
+                  default_order="gasolinera_id, product_id">
+                <field name="gasolinera_id" readonly="1"/>
+                <field name="default_code" readonly="1" optional="show"/>
+                <field name="product_id" readonly="1" context="{'display_default_code': False}"/>
+                <field name="stock_actual" readonly="1"/>
+                <field name="stock_minimo" widget="laroca_contador" width="150px"/>
+                <field name="stock_objetivo" widget="laroca_contador" width="150px"/>
+                <field name="estado" widget="badge" readonly="1"
+                       decoration-success="estado == 'suficiente'" decoration-warning="estado == 'bajo'"
+                       decoration-danger="estado == 'critico'" decoration-muted="estado == 'sin_minimo'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_laroca_niveles" model="ir.actions.act_window">
+        <field name="name">Stock mínimo por gasolinera</field>
+        <field name="res_model">laroca.inventario</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="view_laroca_inventario_search"/>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_laroca_niveles_list')})]"/>
+        <field name="help" type="html">
+            <p>Editá el mínimo y el objetivo directamente en la lista. Seleccioná varias filas para cambiarlas todas a la vez.</p>
+        </field>
+    </record>
+
+    <!-- ==================== PARÁMETROS ==================== -->
+    <record id="view_laroca_parametros_form" model="ir.ui.view">
+        <field name="name">res.company.laroca.parametros</field>
+        <field name="model">res.company</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <form string="Parámetros de abastecimiento" create="0" delete="0">
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group string="Estados del inventario">
+                            <field name="laroca_porcentaje_critico"/>
+                            <div colspan="2" class="text-muted">
+                                Suficiente: stock ≥ mínimo · Bajo: menor que el mínimo ·
+                                Crítico: igual o menor que este porcentaje del mínimo.
+                            </div>
+                        </group>
+                        <group string="Abastecimiento">
+                            <field name="laroca_bodega_central_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Notificaciones">
+                            <field name="laroca_enviar_correos"/>
+                            <div colspan="2" class="text-muted">
+                                Las alertas siempre llegan al canal "Alertas de abastecimiento" de Conversaciones.
+                                Con esta opción también llegan por correo a los administradores.
+                            </div>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_laroca_parametros" model="ir.actions.server">
+        <field name="name">Parámetros de abastecimiento</field>
+        <field name="model_id" ref="base.model_res_company"/>
+        <field name="state">code</field>
+        <field name="code">action = env.company.action_laroca_abrir_parametros()</field>
+        <field name="groups_id" eval="[(4, ref('group_laroca_admin'))]"/>
+    </record>
+
+    <!-- ==================== PRODUCTO: niveles por defecto ==================== -->
+    <record id="product_template_form_laroca" model="ir.ui.view">
+        <field name="name">product.template.form.laroca</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="before">
+                <field name="description_sale" nolabel="1" class="mb-3"
+                       placeholder="Descripción del producto (se muestra en el catálogo): qué es, para qué sirve, tamaño..."/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="La Roca" name="laroca" invisible="not is_storable">
+                    <group>
+                        <group string="Niveles por gasolinera">
+                            <field name="laroca_stock_minimo" widget="laroca_contador"/>
+                            <field name="laroca_stock_objetivo" widget="laroca_contador"/>
+                        </group>
+                        <group>
+                            <div colspan="2" class="text-muted">
+                                Estos valores se usan cuando el producto se agrega a una gasolinera.
+                                Para cambiarlos en todas las gasolineras existentes usá el botón.
+                            </div>
+                            <button name="action_laroca_aplicar_niveles" type="object" colspan="2"
+                                    string="Aplicar a todas las gasolineras" class="btn-secondary" icon="fa-refresh"
+                                    groups="laroca_inventario.group_laroca_admin"
+                                    confirm="Se reemplazarán el mínimo y el objetivo de este producto en todas las gasolineras. ¿Continuar?"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Mínimos y objetivos ficticios (Etapa 2). Se puede ejecutar varias veces:
+         solo completa los productos/gasolineras que aún no tienen mínimo. -->
+    <function model="laroca.inventario" name="_datos_prueba_cargar_niveles"/>
+</odoo>

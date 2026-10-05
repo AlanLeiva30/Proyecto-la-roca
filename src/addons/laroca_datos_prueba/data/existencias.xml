@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Existencias iniciales ficticias (ver models/datos_prueba.py) -->
+    <function model="laroca.inventario" name="_datos_prueba_cargar_existencias"/>
+</odoo>

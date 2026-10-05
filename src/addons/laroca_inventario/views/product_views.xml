@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Catálogo de productos: usa product.template nativo, solo productos inventariables -->
+    <record id="view_laroca_producto_list" model="ir.ui.view">
+        <field name="name">laroca.product.template.list</field>
+        <field name="model">product.template</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <list string="Catálogo de productos">
+                <field name="default_code" string="Código"/>
+                <field name="name"/>
+                <field name="categ_id"/>
+                <field name="list_price" string="Precio de venta" optional="show"/>
+                <field name="qty_available" string="Existencia total" optional="show"/>
+                <field name="uom_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Catálogo con foto grande, descripción y precio -->
+    <record id="view_laroca_producto_kanban" model="ir.ui.view">
+        <field name="name">laroca.product.template.kanban</field>
+        <field name="model">product.template</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <kanban class="o_laroca_catalogo" sample="1">
+                <field name="currency_id"/>
+                <templates>
+                    <t t-name="card" class="p-0">
+                        <div class="o_laroca_foto">
+                            <field name="image_512" widget="image" class="d-block"/>
+                        </div>
+                        <div class="p-2">
+                            <field name="name" class="fw-bold"/>
+                            <div class="text-muted small"><field name="default_code"/> · <field name="categ_id"/></div>
+                            <field name="description_sale" class="o_laroca_descripcion small mt-1 text-body"/>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <field name="list_price" widget="monetary" class="fw-bold text-primary fs-6"/>
+                                <span class="text-muted small"><field name="qty_available"/> en total</span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Búsqueda simple del catálogo: nombre o código y categorías a la izquierda -->
+    <record id="view_laroca_producto_search" model="ir.ui.view">
+        <field name="name">laroca.producto.search</field>
+        <field name="model">product.template</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <search string="Productos">
+                <field name="name" string="Producto" filter_domain="['|', ('name', 'ilike', self), ('default_code', 'ilike', self)]"/>
+                <filter name="archivados" string="Archivados" domain="[('active', '=', False)]"/>
+                <searchpanel>
+                    <field name="categ_id" string="Categoría" icon="fa-tags" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_laroca_productos" model="ir.actions.act_window">
+        <field name="name">Catálogo de productos</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('is_storable', '=', True)]</field>
+        <field name="context">{'default_is_storable': True, 'default_type': 'consu'}</field>
+        <field name="search_view_id" ref="view_laroca_producto_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_laroca_producto_kanban')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_laroca_producto_list')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Registrá el primer producto</p>
+            <p>Lentes, llaveros, juguetes, sombreros, aceites y otros artículos que se distribuyen a las gasolineras.</p>
+        </field>
+    </record>
+
+    <record id="action_laroca_categorias" model="ir.actions.act_window">
+        <field name="name">Categorías de producto</field>
+        <field name="res_model">product.category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

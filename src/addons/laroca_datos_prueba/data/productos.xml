@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Catálogo FICTICIO basado en los artículos mencionados por la empresa -->
+    <record id="categoria_accesorios" model="product.category">
+        <field name="name">Accesorios</field>
+    </record>
+    <record id="categoria_juguetes" model="product.category">
+        <field name="name">Juguetes</field>
+    </record>
+    <record id="categoria_lubricantes" model="product.category">
+        <field name="name">Lubricantes y aditivos</field>
+    </record>
+    <record id="categoria_aromatizantes" model="product.category">
+        <field name="name">Aromatizantes</field>
+    </record>
+    <record id="producto_len_001" model="product.template">
+        <field name="name">Lentes de sol clásicos</field>
+        <field name="default_code">LEN-001</field>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="categ_id" ref="categoria_accesorios"/>
+        <field name="list_price">8.50</field>
+        <field name="standard_price">4.00</field>
+    </record>
+    <record id="producto_len_002" model="product.template">
+        <field name="name">Lentes de sol deportivos</field>
+        <field name="default_code">LEN-002</field>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="categ_id" ref="categoria_accesorios"/>
+        <field name="list_price">12.00</field>
+        <field name="standard_price">6.00</field>
+    </record>
+    <record id="producto_lla_001" model="product.template">
+        <field name="name">Llavero metálico La Roca</field>
+        <field name="default_code">LLA-001</field>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="categ_id" ref="categoria_accesorios"/>
+        <field name="list_price">3.00</field>
+        <field name="standard_price">1.20</field>
+    </record>
+    <record id="producto_lla_002" model="product.template">
+        <field name="name">Llavero de peluche</field>
+        <field name="default_code">LLA-002</field>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="categ_id" ref="categoria_accesorios"/>
+        <field name="list_price">4.50</field>
+        <field name="standard_price">2.00</field>
+    </record>
+    <record id="producto_som_001" model="product.template">
+        <field name="name">Sombrero de palma</field>
+        <field name="default_code">SOM-001</field>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="categ_id" ref="categoria_accesorios"/>
+        <field name="list_price">10.00</field>
+        <field name="standard_price">5.00</field>
+    </record>
+    <record id="producto_som_002" model="product.template">
+        <field name="name">Gorra bordada La Roca</field>
+        <field name="default_code">SOM-002</field>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="categ_id" ref="categoria_accesorios"/>
+        <field name="list_price">7.50</field>
+        <field name="standard_price">3.50</field>
+    </record>
+    <record id="producto_jug_001" model="product.template">
+        <field name="name">Carrito de juguete</field>
+        <field name="default_code">JUG-001</field>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="categ_id" ref="categoria_juguetes"/>
+        <field name="list_price">5.00</field>
+        <field name="standard_price">2.25</field>
+    </record>
+    <record id="producto_jug_002" model="product.template">
+        <field name="name">Pelota saltarina</field>
+        <field name="default_code">JUG-002</field>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="categ_id" ref="categoria_juguetes"/>
+        <field name="list_price">2.00</field>
+        <field name="standard_price">0.80</field>
+    </record>
+    <record id="producto_adi_001" model="product.template">
+        <field name="name">Aditivo para combustible 350 ml</field>
+        <field name="default_code">ADI-001</field>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="categ_id" ref="categoria_lubricantes"/>
+        <field name="list_price">6.75</field>
+        <field name="standard_price">3.90</field>
+    </record>
+    <record id="producto_ace_001" model="product.template">
+        <field name="name">Aceite de motor 15W-40 (1 L)</field>
+        <field name="default_code">ACE-001</field>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="categ_id" ref="categoria_lubricantes"/>
+        <field name="list_price">9.25</field>
+        <field name="standard_price">5.60</field>
+    </record>
+    <record id="producto_ace_002" model="product.template">
+        <field name="name">Aceite 2T para motocicleta (1 L)</field>
+        <field name="default_code">ACE-002</field>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="categ_id" ref="categoria_lubricantes"/>
+        <field name="list_price">7.00</field>
+        <field name="standard_price">4.10</field>
+    </record>
+    <record id="producto_aro_001" model="product.template">
+        <field name="name">Aromatizante de pino</field>
+        <field name="default_code">ARO-001</field>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="categ_id" ref="categoria_aromatizantes"/>
+        <field name="list_price">2.50</field>
+        <field name="standard_price">0.90</field>
+    </record>
+    <record id="producto_aro_002" model="product.template">
+        <field name="name">Aromatizante de vainilla</field>
+        <field name="default_code">ARO-002</field>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="categ_id" ref="categoria_aromatizantes"/>
+        <field name="list_price">2.50</field>
+        <field name="standard_price">0.90</field>
+    </record>
+</odoo>

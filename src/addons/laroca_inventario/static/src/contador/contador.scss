@@ -1,0 +1,60 @@
+// Contador con botones − y + para las cantidades. Mismo tamaño en todas las pantallas.
+.o_laroca_contador {
+    display: inline-flex;
+    align-items: stretch;
+    width: 8.5rem;
+    height: 2rem;
+    border: 1px solid $border-color;
+    border-radius: 2rem;
+    overflow: hidden;
+    background: $white;
+    vertical-align: middle;
+    .o_input {
+        flex: 1 1 auto;
+        width: 100%;
+        min-width: 0;
+        border: 0 !important;
+        text-align: center;
+        font-weight: bold;
+        padding: 0;
+    }
+    .o_laroca_contador_btn {
+        flex: 0 0 2.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 0;
+        padding: 0;
+        color: $o-brand-primary;
+        background: rgba($o-brand-primary, 0.06);
+        &:hover:not(:disabled) { background: rgba($o-brand-primary, 0.16); }
+        &:disabled { color: $gray-400; }
+    }
+}
+// En el celular, botones más grandes para el dedo
+@include media-breakpoint-down(md) {
+    .o_laroca_contador {
+        width: 10.5rem;
+        height: 2.75rem;
+        .o_laroca_contador_btn { flex-basis: 3rem; font-size: 1.1rem; }
+        .o_input { font-size: 1.2rem; }
+    }
+}
+// En las listas el contador va centrado y nunca se corta (la columna mide 150px en las vistas)
+.o_list_renderer .o_field_laroca_contador {
+    display: flex;
+    justify-content: center;
+}
+.o_laroca_sugerido {
+    border-radius: 2rem;
+    min-width: 4rem;
+}
+// Número siempre centrado (Odoo alinea los números a la derecha en las listas)
+.o_laroca_contador .o_input {
+    text-align: center !important;
+}
+// Renglones con contador: todo el contenido alineado al centro, para que se vea parejo
+.o_list_renderer tr:has(.o_laroca_contador) > td {
+    vertical-align: middle;
+}

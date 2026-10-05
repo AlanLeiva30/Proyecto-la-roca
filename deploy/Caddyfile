@@ -1,0 +1,15 @@
+# Caddy: entrada HTTPS al sistema. Pide y renueva solo el certificado de Let's Encrypt.
+{$DOMINIO} {
+	encode gzip
+	# Notificaciones en vivo de Odoo (con workers van por el puerto 8072)
+	reverse_proxy /websocket odoo:8072
+	reverse_proxy odoo:8069
+}
+
+# Buzón de prueba de los correos que envía el sistema (solo para la demostración)
+correo.{$DOMINIO} {
+	basic_auth {
+		{$CORREO_USUARIO} {$CORREO_CLAVE_HASH}
+	}
+	reverse_proxy mailpit:8025
+}

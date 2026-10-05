@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Entregas ficticias (Etapa 3). Solo se crean si no existe ninguna entrega. -->
+    <function model="laroca.inventario" name="_datos_prueba_cargar_entregas"/>
+</odoo>

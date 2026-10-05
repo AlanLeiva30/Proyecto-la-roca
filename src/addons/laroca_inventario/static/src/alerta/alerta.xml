@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="laroca_inventario.Alerta">
+        <Dialog size="'md'" header="false" footer="false" contentClass="'o_laroca_alerta'">
+            <div class="text-center px-2 py-3">
+                <div t-attf-class="o_laroca_alerta_icono o_laroca_alerta_{{props.tipo}} mx-auto">
+                    <i t-attf-class="fa {{icono}}"/>
+                </div>
+                <h2 class="mt-4 mb-2 fw-bold" t-esc="props.titulo"/>
+                <p t-if="props.texto" class="fs-5 text-muted mb-2" t-esc="props.texto"/>
+                <ul t-if="props.detalle.length" class="list-unstyled o_laroca_alerta_detalle mx-auto text-start mb-0">
+                    <li t-foreach="props.detalle" t-as="linea" t-key="linea_index" t-esc="linea"/>
+                </ul>
+                <button t-ref="boton" t-attf-class="btn btn-lg mt-4 px-5 o_laroca_alerta_boton_{{props.tipo}}"
+                        t-on-click="() => props.close()" t-esc="props.boton"/>
+            </div>
+        </Dialog>
+    </t>
+
+    <t t-name="laroca_inventario.Confirmar">
+        <Dialog size="'md'" header="false" footer="false" contentClass="'o_laroca_alerta'">
+            <div class="text-center px-2 py-3">
+                <div t-attf-class="o_laroca_alerta_icono o_laroca_alerta_{{props.tipo}} mx-auto">
+                    <i t-attf-class="fa {{icono}}"/>
+                </div>
+                <h2 class="mt-4 mb-2 fw-bold" t-esc="props.titulo"/>
+                <p t-if="props.texto" class="fs-5 text-muted mb-2" t-esc="props.texto"/>
+                <div class="d-flex justify-content-center gap-2 mt-4 flex-wrap">
+                    <button t-ref="boton" t-attf-class="btn btn-lg px-4 o_laroca_alerta_boton_{{props.tipo}}"
+                            t-on-click="confirmar" t-esc="props.boton"/>
+                    <button class="btn btn-lg btn-secondary px-4" t-on-click="() => props.close()"
+                            t-esc="props.botonCancelar or 'Cancelar'"/>
+                </div>
+            </div>
+        </Dialog>
+    </t>
+</templates>

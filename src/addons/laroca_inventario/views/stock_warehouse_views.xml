@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vistas propias y simples para "Gasolineras" (sobre stock.warehouse) -->
+    <record id="view_laroca_gasolinera_list" model="ir.ui.view">
+        <field name="name">laroca.gasolinera.list</field>
+        <field name="model">stock.warehouse</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <list string="Gasolineras">
+                <field name="code" string="Código"/>
+                <field name="name" string="Gasolinera"/>
+                <field name="laroca_municipio"/>
+                <field name="laroca_departamento" optional="show"/>
+                <field name="laroca_telefono" optional="show"/>
+                <field name="laroca_encargado_ids" widget="many2many_avatar_user" optional="show"/>
+                <field name="laroca_producto_count" optional="hide"/>
+                <field name="laroca_critico_count" string="Críticos" decoration-danger="laroca_critico_count &gt; 0"/>
+                <field name="laroca_bajo_count" string="Bajos" decoration-warning="laroca_bajo_count &gt; 0"/>
+                <field name="laroca_currency_id" column_invisible="1"/>
+                <field name="laroca_valor_stock" string="Valor inventario" optional="show"
+                       groups="laroca_inventario.group_laroca_admin"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_laroca_gasolinera_form" model="ir.ui.view">
+        <field name="name">laroca.gasolinera.form</field>
+        <field name="model">stock.warehouse</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <form string="Gasolinera">
+                <header>
+                    <button name="action_laroca_preparar_entrega" type="object" string="Preparar entrega" class="btn-primary"
+                            icon="fa-truck" invisible="not id or laroca_pendiente_count == 0"
+                            groups="laroca_inventario.group_laroca_admin"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_laroca_ver_inventario" type="object" class="oe_stat_button" icon="fa-cubes">
+                            <field name="laroca_producto_count" widget="statinfo" string="Productos"/>
+                        </button>
+                        <button name="action_laroca_ver_pendientes" type="object" class="oe_stat_button" icon="fa-exclamation-triangle">
+                            <field name="laroca_pendiente_count" widget="statinfo" string="Por abastecer"/>
+                        </button>
+                        <button name="action_laroca_ver_entregas" type="object" class="oe_stat_button" icon="fa-truck">
+                            <field name="laroca_entrega_count" widget="statinfo" string="Entregas"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archivada" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <field name="laroca_es_gasolinera" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name" string="Nombre de la gasolinera"/>
+                        <h1><field name="name" placeholder="Ej.: La Roca Centro"/></h1>
+                    </div>
+                    <group>
+                        <group string="Datos generales">
+                            <field name="code" string="Código corto" help="Máximo 5 caracteres. Se usa como prefijo de ubicaciones y movimientos."/>
+                            <field name="laroca_telefono" widget="phone"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Ubicación">
+                            <field name="laroca_direccion"/>
+                            <field name="laroca_municipio"/>
+                            <field name="laroca_departamento"/>
+                        </group>
+                    </group>
+                    <group string="Encargados de la sucursal">
+                        <field name="laroca_encargado_ids" widget="many2many_tags_avatar" nolabel="1" colspan="2"
+                               options="{'no_create': True}"/>
+                    </group>
+                    <group string="Notas">
+                        <field name="laroca_notas" nolabel="1" colspan="2" placeholder="Horario, referencias, indicaciones para entregas..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_laroca_gasolinera_search" model="ir.ui.view">
+        <field name="name">laroca.gasolinera.search</field>
+        <field name="model">stock.warehouse</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Gasolinera"/>
+                <field name="laroca_municipio"/>
+                <field name="laroca_encargado_ids"/>
+                <filter name="archivadas" string="Archivadas" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_laroca_gasolineras" model="ir.actions.act_window">
+        <field name="name">Gasolineras</field>
+        <field name="res_model">stock.warehouse</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('laroca_es_gasolinera', '=', True)]</field>
+        <field name="context">{'default_laroca_es_gasolinera': True, 'default_name': False}</field>
+        <field name="search_view_id" ref="view_laroca_gasolinera_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_laroca_gasolinera_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_laroca_gasolinera_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Registrá la primera gasolinera</p>
+            <p>Cada gasolinera tendrá su propio inventario con todos los productos del catálogo.</p>
+        </field>
+    </record>
+
+    <!-- En el formulario nativo de almacén se muestra la casilla "Es gasolinera" -->
+    <record id="view_warehouse_inherit_laroca" model="ir.ui.view">
+        <field name="name">stock.warehouse.form.laroca</field>
+        <field name="model">stock.warehouse</field>
+        <field name="inherit_id" ref="stock.view_warehouse"/>
+        <field name="arch" type="xml">
+            <field name="code" position="after">
+                <field name="laroca_es_gasolinera"/>
+            </field>
+        </field>
+    </record>
+</odoo>

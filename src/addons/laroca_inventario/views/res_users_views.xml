@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_users_form_laroca" model="ir.ui.view">
+        <field name="name">res.users.form.laroca</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[@name='access_rights']" position="before">
+                <page string="La Roca" name="laroca">
+                    <group>
+                        <field name="laroca_gasolinera_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                    </group>
+                    <div class="text-muted">
+                        El rol (Encargado de sucursal o Administrador) se elige en la pestaña
+                        "Permisos de acceso", sección "La Roca". El encargado solo ve las
+                        gasolineras indicadas aquí; el administrador ve todas.
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ==================== GESTIÓN SENCILLA DE USUARIOS (administrador) ==================== -->
+    <record id="view_laroca_usuario_list" model="ir.ui.view">
+        <field name="name">laroca.usuario.list</field>
+        <field name="model">res.users</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <list string="Usuarios" decoration-muted="not active">
+                <field name="active" column_invisible="1"/>
+                <field name="avatar_128" widget="image" options="{'size': [32, 32], 'img_class': 'rounded-circle'}" string=" "/>
+                <field name="name" string="Nombre"/>
+                <field name="login" string="Usuario"/>
+                <field name="laroca_rol" widget="badge" decoration-info="laroca_rol == 'admin'" decoration-success="laroca_rol == 'encargado'"/>
+                <field name="laroca_gasolinera_ids" widget="many2many_tags" string="Gasolineras" optional="show"/>
+                <field name="email" string="Correo" optional="show"/>
+                <field name="login_date" string="Último ingreso" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_laroca_usuario_form" model="ir.ui.view">
+        <field name="name">laroca.usuario.form</field>
+        <field name="model">res.users</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <form string="Usuario">
+                <header>
+                    <button name="action_laroca_cambiar_clave" type="object" string="Cambiar contraseña"
+                            icon="fa-key" class="btn-primary" invisible="not id"/>
+                    <button name="action_archive" type="object" string="Desactivar usuario" icon="fa-ban"
+                            invisible="not id or not active"
+                            confirm="El usuario no podrá entrar al sistema. Su historial se conserva. ¿Continuar?"/>
+                    <button name="action_unarchive" type="object" string="Reactivar usuario" icon="fa-check"
+                            invisible="active"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Desactivado" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <!-- En el celular Odoo esconde los botones de la cabecera: este queda a la vista -->
+                    <button name="action_laroca_cambiar_clave" type="object" string="Cambiar contraseña" icon="fa-key"
+                            class="btn btn-outline-primary w-100 mb-3 d-md-none" invisible="not id"/>
+                    <div class="d-flex gap-3 align-items-start mb-3">
+                        <field name="image_1920" widget="image" options="{'preview_image': 'avatar_128', 'size': [96, 96]}"/>
+                        <div class="oe_title flex-grow-1">
+                            <label for="name" string="Nombre completo"/>
+                            <h1><field name="name" required="1" placeholder="Ej.: Ana Gómez"/></h1>
+                        </div>
+                    </div>
+                    <group>
+                        <group string="Acceso">
+                            <field name="login" string="Usuario" placeholder="Ej.: encargado.litoral"
+                                   help="Con este nombre entra al sistema. Sin espacios; se recomienda nombre.apellido o encargado.sucursal."/>
+                            <field name="laroca_clave" password="True" invisible="id" required="not id"
+                                   placeholder="Mínimo 8 caracteres"/>
+                            <div colspan="2" class="text-muted small" invisible="not id">
+                                La contraseña no se muestra (se guarda cifrada). Para asignar una nueva usá
+                                el botón <b>Cambiar contraseña</b>.
+                            </div>
+                            <field name="laroca_rol" widget="radio" required="1"/>
+                            <field name="login_date" string="Último ingreso" readonly="1" invisible="not id"/>
+                        </group>
+                        <group string="Contacto">
+                            <field name="email" string="Correo electrónico" widget="email" placeholder="Para recibir avisos"/>
+                            <field name="phone" string="Teléfono" widget="phone"/>
+                        </group>
+                    </group>
+                    <group string="Gasolineras a su cargo" invisible="laroca_rol != 'encargado'">
+                        <field name="laroca_gasolinera_ids" nolabel="1" colspan="2" widget="many2many_tags"
+                               options="{'no_create': True}" placeholder="Elegí una o más gasolineras"/>
+                        <div colspan="2" class="text-muted small">El encargado solo verá estas gasolineras.</div>
+                    </group>
+                    <div class="alert alert-info" role="status" invisible="laroca_rol != 'admin'">
+                        El administrador ve todas las gasolineras, prepara entregas, gestiona el catálogo,
+                        los usuarios y la configuración.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_laroca_usuario_search" model="ir.ui.view">
+        <field name="name">laroca.usuario.search</field>
+        <field name="model">res.users</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Nombre" filter_domain="['|', ('name', 'ilike', self), ('login', 'ilike', self)]"/>
+                <field name="laroca_gasolinera_ids" string="Gasolinera"/>
+                <filter name="encargados" string="Encargados" domain="[('laroca_rol', '=', 'encargado')]"/>
+                <filter name="administradores" string="Administradores" domain="[('laroca_rol', '=', 'admin')]"/>
+                <separator/>
+                <filter name="desactivados" string="Desactivados" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Usuarios del sistema La Roca (no se muestran los usuarios técnicos de Odoo) -->
+    <record id="action_laroca_usuarios" model="ir.actions.act_window">
+        <field name="name">Usuarios</field>
+        <field name="res_model">res.users</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain" eval="[('share', '=', False),
+                                    ('groups_id', 'in', [ref('group_laroca_encargado')]),
+                                    ('groups_id', 'not in', [ref('base.group_system')])]"/>
+        <field name="context">{'default_laroca_rol': 'encargado'}</field>
+        <field name="search_view_id" ref="view_laroca_usuario_search"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_laroca_usuario_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_laroca_usuario_form')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Creá el primer usuario</p>
+            <p>Encargados de gasolinera y administradores del sistema.</p>
+        </field>
+    </record>
+
+    <!-- Ventana para cambiar la contraseña -->
+    <record id="view_laroca_cambiar_clave_form" model="ir.ui.view">
+        <field name="name">laroca.cambiar.clave.form</field>
+        <field name="model">laroca.cambiar.clave</field>
+        <field name="arch" type="xml">
+            <form string="Cambiar contraseña">
+                <group>
+                    <field name="user_id" options="{'no_open': True}"/>
+                    <field name="clave" password="True" placeholder="Mínimo 8 caracteres"/>
+                    <field name="confirmar" password="True"/>
+                </group>
+                <p class="text-muted small">
+                    Usá una contraseña que no sea fácil de adivinar. Si el usuario tenía la sesión abierta,
+                    deberá volver a entrar con la nueva contraseña.
+                </p>
+                <footer>
+                    <button name="action_confirmar" type="object" string="Guardar contraseña" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

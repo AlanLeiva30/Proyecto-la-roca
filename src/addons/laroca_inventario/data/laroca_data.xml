@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Activa "Ubicaciones de almacenamiento" y "Múltiples almacenes" para todos
+         los usuarios internos (equivale a marcarlos en Inventario > Ajustes). -->
+    <record id="base.group_user" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('stock.group_stock_multi_locations')), (4, ref('stock.group_stock_multi_warehouses'))]"/>
+    </record>
+
+    <!-- El menú nativo "Inventario" queda solo para administradores; los encargados
+         usan la aplicación "La Roca", más simple y limitada a su gasolinera. -->
+    <record id="stock.menu_stock_root" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6, 0, [ref('stock.group_stock_manager')])]"/>
+    </record>
+
+    <!-- El menú "Aplicaciones" (instalar módulos) solo para el administrador técnico -->
+    <record id="base.menu_management" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6, 0, [ref('base.group_system')])]"/>
+    </record>
+
+    <!-- Se desactiva el "resumen periódico de Odoo" (correo genérico de indicadores de Odoo):
+         el sistema ya envía su propio resumen diario de abastecimiento. -->
+    <function model="digest.digest" name="action_deactivate" eval="[[ref('digest.digest_digest_default')]]"/>
+
+    <!-- Las cantidades se muestran sin decimales: los productos se cuentan por unidad.
+         (Solo al instalar; en bases existentes lo aplica migrations/18.0.6.0.0) -->
+    <data noupdate="1">
+        <function model="decimal.precision" name="write"
+                  eval="[[ref('product.decimal_product_uom')], {'digits': 0}]"/>
+    </data>
+
+    <!-- Diseño de los PDF ya elegido (evita el asistente "Diseño de documentos" al imprimir) -->
+    <function model="res.company" name="_laroca_configurar_diseno_documentos"/>
+
+    <!-- Sin registro público: las cuentas solo las crea el administrador -->
+    <function model="ir.config_parameter" name="set_param" eval="['auth_signup.invitation_scope', 'b2b']"/>
+</odoo>

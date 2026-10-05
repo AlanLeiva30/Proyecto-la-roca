@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_laroca_general" model="ir.actions.report">
+        <field name="name">Reporte La Roca</field>
+        <field name="model">laroca.reporte</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">laroca_inventario.report_laroca_general</field>
+        <field name="report_file">laroca_inventario.report_laroca_general</field>
+        <field name="print_report_name">'Reporte - %s' % dict(object._fields['tipo'].selection)[object.tipo]</field>
+    </record>
+
+    <template id="report_laroca_general">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="d" t-value="datos[o.id]"/>
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 t-esc="titulos[o.id]"/>
+                        <p class="text-muted">
+                            Generado el <span t-esc="generado.strftime('%d/%m/%Y %H:%M')"/> por <span t-esc="usuario.name"/>
+                            <t t-if="o.tipo == 'abastecimientos'">
+                                · Período: <span t-field="o.fecha_desde"/> al <span t-field="o.fecha_hasta"/>
+                            </t>
+                        </p>
+
+                        <!-- Inventario por gasolinera / Productos con poca existencia -->
+                        <t t-if="o.tipo in ('inventario', 'stock_bajo')">
+                            <p t-if="not d['grupos']">✅ No hay productos con poca existencia.</p>
+                            <t t-foreach="d['grupos']" t-as="grupo">
+                                <t t-set="gasolinera" t-value="grupo[0]"/>
+                                <t t-set="lineas" t-value="grupo[1]"/>
+                                <t t-set="resumen" t-value="grupo[2]"/>
+                                <h4 class="mt-4" style="page-break-inside: avoid;">
+                                    <span t-esc="gasolinera.name"/>
+                                    <small class="text-muted">
+                                        — Críticos: <span t-esc="resumen['critico']"/> · Bajos: <span t-esc="resumen['bajo']"/>
+                                        <t t-if="o.tipo == 'inventario'"> · Suficientes: <span t-esc="resumen['suficiente']"/></t>
+                                    </small>
+                                </h4>
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Producto</th>
+                                            <th>Categoría</th>
+                                            <th class="text-end">Stock</th>
+                                            <th class="text-end">Mínimo</th>
+                                            <th>Estado</th>
+                                            <th t-if="o.tipo == 'stock_bajo'" class="text-end">Sugerido</th>
+                                            <th t-if="o.tipo == 'stock_bajo'" class="text-end">En bodega</th>
+                                            <th t-if="o.tipo == 'inventario'" class="text-end">Valor</th>
+                                            <th t-if="o.tipo == 'inventario'">Conteo físico</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="lineas" t-as="l">
+                                            <td t-esc="l.default_code or ''"/>
+                                            <td t-esc="l.product_id.name"/>
+                                            <td t-esc="l.categ_id.name"/>
+                                            <td class="text-end" t-esc="fmt(l.stock_actual)"/>
+                                            <td class="text-end" t-esc="fmt(l.stock_minimo)"/>
+                                            <td>
+                                                <!-- Colores en línea: el motor de PDF (wkhtmltopdf) no entiende las variables CSS de Bootstrap 5 -->
+                                                <span t-attf-style="padding: 1px 6px; border-radius: 4px; font-weight: bold; color: #fff; background-color: #{colores[l.estado]};"
+                                                      t-esc="estados[l.estado]"/>
+                                            </td>
+                                            <td t-if="o.tipo == 'stock_bajo'" class="text-end fw-bold" t-esc="fmt(l.cantidad_sugerida)"/>
+                                            <td t-if="o.tipo == 'stock_bajo'" class="text-end" t-esc="fmt(l.disponible_bodega)"/>
+                                            <td t-if="o.tipo == 'inventario'" class="text-end" t-esc="dinero(l.valor_stock)"/>
+                                            <td t-if="o.tipo == 'inventario'"/>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot t-if="o.tipo == 'inventario'">
+                                        <tr>
+                                            <th colspan="3">Total</th>
+                                            <th class="text-end" t-esc="fmt(sum(lineas.mapped('stock_actual')))"/>
+                                            <th colspan="2"/>
+                                            <th class="text-end" t-esc="dinero(sum(lineas.mapped('valor_stock')))"/>
+                                            <th/>
+                                        </tr>
+                                    </tfoot>
+                                    <tfoot t-if="o.tipo == 'stock_bajo'">
+                                        <tr>
+                                            <th colspan="6">Total a llevar</th>
+                                            <th class="text-end" t-esc="fmt(sum(lineas.mapped('cantidad_sugerida')))"/>
+                                            <th/>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </t>
+                        </t>
+
+                        <!-- Abastecimientos por período -->
+                        <t t-if="o.tipo == 'abastecimientos'">
+                            <p t-if="not d['entregas']">No hubo entregas recibidas en el período.</p>
+                            <t t-if="d['entregas']">
+                                <p><strong>Entregas recibidas:</strong> <span t-esc="d['total_entregas']"/> ·
+                                   <strong>Unidades entregadas:</strong> <span t-esc="fmt(d['total_unidades'])"/> ·
+                                   <strong>Valor (costo):</strong> <span t-esc="dinero(d['total_valor'])"/></p>
+                                <h4>Por gasolinera</h4>
+                                <table class="table table-sm table-bordered">
+                                    <thead><tr><th>Gasolinera</th><th class="text-end">Entregas</th><th class="text-end">Unidades</th><th class="text-end">Valor</th></tr></thead>
+                                    <tbody>
+                                        <tr t-foreach="d['por_gasolinera'].items()" t-as="item">
+                                            <td t-esc="item[0].name"/>
+                                            <td class="text-end" t-esc="item[1]['entregas']"/>
+                                            <td class="text-end" t-esc="fmt(item[1]['unidades'])"/>
+                                            <td class="text-end" t-esc="dinero(item[1]['valor'])"/>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <h4>Productos más abastecidos</h4>
+                                <table class="table table-sm table-bordered">
+                                    <thead><tr><th>Código</th><th>Producto</th><th class="text-end">Unidades</th></tr></thead>
+                                    <tbody>
+                                        <tr t-foreach="d['por_producto']" t-as="item">
+                                            <td t-esc="item[0].default_code or ''"/>
+                                            <td t-esc="item[0].name"/>
+                                            <td class="text-end" t-esc="fmt(item[1])"/>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <h4>Detalle de entregas</h4>
+                                <table class="table table-sm table-bordered">
+                                    <thead><tr><th>Entrega</th><th>Fecha</th><th>Gasolinera</th><th class="text-end">Enviadas</th><th class="text-end">Entregadas</th><th>Recibió</th></tr></thead>
+                                    <tbody>
+                                        <tr t-foreach="d['entregas']" t-as="e">
+                                            <td t-esc="e.name"/>
+                                            <td><span t-field="e.fecha_entrega" t-options="{'widget': 'date'}"/></td>
+                                            <td t-esc="e.gasolinera_id.name"/>
+                                            <td class="text-end" t-esc="fmt(e.total_unidades)"/>
+                                            <td class="text-end" t-esc="fmt(e.total_entregado)"/>
+                                            <td t-esc="e.recibido_por_id.name or ''"/>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </t>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

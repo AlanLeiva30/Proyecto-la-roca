@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Servidor de correo de PRUEBA: Mailpit (contenedor "mailpit" de docker-compose).
+         Los correos NO salen a internet; se ven en http://localhost:8025
+         En producción reemplazar por el servidor real (Ajustes → Técnico → Servidores de correo saliente). -->
+    <record id="servidor_correo_mailpit" model="ir.mail_server">
+        <field name="name">Mailpit (pruebas)</field>
+        <field name="smtp_host">mailpit</field>
+        <field name="smtp_port">1025</field>
+        <field name="smtp_encryption">none</field>
+        <field name="sequence">1</field>
+    </record>
+    <function model="ir.config_parameter" name="set_param" eval="['mail.catchall.domain', 'laroca.test']"/>
+    <function model="ir.config_parameter" name="set_param" eval="['mail.default.from', 'notificaciones']"/>
+</odoo>

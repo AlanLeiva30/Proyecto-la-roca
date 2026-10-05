@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Recibir mercadería / contar la bodega central (administrador) -->
+    <record id="view_laroca_bodega_movimiento_form" model="ir.ui.view">
+        <field name="name">laroca.bodega.movimiento.form</field>
+        <field name="model">laroca.bodega.movimiento</field>
+        <field name="arch" type="xml">
+            <form string="Bodega central">
+                <group>
+                    <group>
+                        <field name="modo" widget="radio"/>
+                    </group>
+                    <group invisible="modo != 'recibir'">
+                        <field name="proveedor" placeholder="Opcional"/>
+                        <field name="referencia" placeholder="Opcional: n.º de factura"/>
+                    </group>
+                </group>
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <field name="buscar" placeholder="Buscar producto…" class="w-auto"/>
+                    <field name="categ_id" options="{'no_create': True, 'no_open': True}" placeholder="Todas las categorías" class="w-auto"/>
+                    <span class="text-muted small" invisible="modo != 'recibir'">Usá <b>−</b> y <b>+</b> para decir cuántas unidades llegaron.</span>
+                    <span class="text-muted small" invisible="modo != 'contar'">Escribí cuántas unidades contaste de verdad.</span>
+                </div>
+                <field name="linea_ids" nolabel="1">
+                    <list editable="bottom" create="0" delete="0"
+                          decoration-bf="(parent.modo == 'recibir' and cantidad &gt; 0) or (parent.modo == 'contar' and cantidad != en_bodega)"
+                          decoration-success="parent.modo == 'recibir' and cantidad &gt; 0">
+                        <field name="product_id" column_invisible="1"/>
+                        <field name="modo_linea" column_invisible="1" force_save="1"/>
+                        <field name="image_128" widget="image" options="{'size': [32, 32]}" string=" " readonly="1" width="44px"/>
+                        <field name="product_id" readonly="1" options="{'no_open': True}" context="{'display_default_code': False}"/>
+                        <field name="en_bodega" force_save="1" width="90px"/>
+                        <field name="cantidad" string="Llegaron / Contado" widget="laroca_contador" options="{'siempre': true}" width="150px"/>
+                        <field name="queda" class="fw-bold" width="90px"/>
+                    </list>
+                    <kanban create="0" delete="0">
+                        <field name="product_id"/>
+                        <field name="modo_linea"/>
+                        <templates>
+                            <t t-name="card" class="flex-row align-items-center">
+                                <field name="image_128" widget="image" options="{'size': [56, 56]}" class="me-2"/>
+                                <div class="flex-grow-1">
+                                    <field name="product_id" class="fw-bold" context="{'display_default_code': False}"/>
+                                    <div class="text-muted small">En bodega <field name="en_bodega"/> · quedará <field name="queda"/></div>
+                                </div>
+                                <field name="cantidad" class="fs-4 fw-bold text-primary"/>
+                            </t>
+                        </templates>
+                    </kanban>
+                    <form string="Cantidad" create="0" delete="0" class="o_laroca_linea_rapida">
+                        <field name="product_id" invisible="1"/>
+                        <field name="modo_linea" invisible="1" force_save="1"/>
+                        <field name="en_bodega" invisible="1" force_save="1"/>
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <field name="image_128" widget="image" options="{'size': [96, 96]}" readonly="1"/>
+                            <div>
+                                <h3 class="mb-1"><field name="product_id" readonly="1" options="{'no_open': True}"
+                                                        context="{'display_default_code': False}"/></h3>
+                                <div>En bodega: <field name="en_bodega" class="d-inline" readonly="1"/></div>
+                            </div>
+                        </div>
+                        <group>
+                            <field name="cantidad" string="Cantidad" widget="laroca_contador"/>
+                            <field name="queda"/>
+                        </group>
+                    </form>
+                </field>
+                <div class="text-end fs-5 mt-2">Unidades: <field name="total_unidades" class="d-inline fw-bold text-primary"/></div>
+                <footer>
+                    <button name="action_guardar" type="object" string="Guardar en la bodega" class="btn-primary" icon="fa-check"
+                            data-hotkey="q"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_laroca_bodega_recibir" model="ir.actions.act_window">
+        <field name="name">Bodega central</field>
+        <field name="res_model">laroca.bodega.movimiento</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'dialog_size': 'extra-large'}</field>
+    </record>
+
+    <!-- Lista de la bodega central: cuánto hay, cuánto está reservado y cuánto se puede llevar -->
+    <record id="view_laroca_bodega_list" model="ir.ui.view">
+        <field name="name">laroca.bodega.list</field>
+        <field name="model">product.template</field>
+        <field name="priority">60</field>
+        <field name="arch" type="xml">
+            <list string="Bodega central" create="0" delete="0" edit="0" decoration-danger="laroca_disponible_bodega &lt;= 0">
+                <header>
+                    <button name="%(laroca_inventario.action_laroca_bodega_recibir)d" type="action" string="Recibir mercadería"
+                            class="btn-primary" icon="fa-truck" display="always" groups="laroca_inventario.group_laroca_admin"/>
+                    <button name="%(laroca_inventario.action_laroca_bodega_recibir)d" type="action" string="Contar bodega"
+                            icon="fa-list-ol" display="always" context="{'default_modo': 'contar'}"
+                            groups="laroca_inventario.group_laroca_admin"/>
+                </header>
+                <field name="image_128" widget="image" options="{'size': [32, 32]}" string=" " width="44px"/>
+                <field name="default_code" string="Código"/>
+                <field name="name" string="Producto"/>
+                <field name="categ_id" optional="show"/>
+                <field name="laroca_stock_bodega"/>
+                <field name="laroca_reservado_bodega" optional="show"/>
+                <field name="laroca_disponible_bodega" class="fw-bold"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="laroca_valor_bodega" optional="show" groups="laroca_inventario.group_laroca_admin"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_laroca_bodega" model="ir.actions.act_window">
+        <field name="name">Bodega central</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">list</field>
+        <field name="domain">[('is_storable', '=', True)]</field>
+        <field name="context">{}</field>
+        <field name="search_view_id" ref="view_laroca_producto_search"/>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_laroca_bodega_list')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No hay productos en el catálogo</p>
+        </field>
+    </record>
+</odoo>

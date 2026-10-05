@@ -1,0 +1,17 @@
+// Página de inicio de sesión con los colores de Grupo La Roca
+body:has(.oe_login_form) {
+    background: linear-gradient(160deg, #0B3D91 0%, #1e5bc6 55%, #f2f5fb 55%) fixed !important;
+}
+.oe_login_form {
+    .btn-primary {
+        background-color: #0B3D91;
+        border-color: #0B3D91;
+        &:hover, &:focus {
+            background-color: #082d6b;
+            border-color: #082d6b;
+        }
+    }
+    a {
+        color: #0B3D91;
+    }
+}

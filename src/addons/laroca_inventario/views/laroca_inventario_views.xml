@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Lista: Inventario por gasolinera (pantalla 10.2 del documento) -->
+    <record id="view_laroca_inventario_list" model="ir.ui.view">
+        <field name="name">laroca.inventario.list</field>
+        <field name="model">laroca.inventario</field>
+        <field name="arch" type="xml">
+            <list string="Inventario por gasolinera" create="0" delete="0" edit="0" default_order="gasolinera_id, prioridad, product_id"
+                  decoration-danger="estado == 'critico'" decoration-warning="estado == 'bajo'">
+                <header>
+                    <button name="%(laroca_inventario.action_laroca_conteo)d" type="action" string="Conteo rápido"
+                            class="btn-primary" icon="fa-list-ol" display="always" groups="laroca_inventario.group_laroca_admin"/>
+                </header>
+                <field name="prioridad" column_invisible="1"/>
+                <field name="gasolinera_id"/>
+                <field name="default_code" optional="show"/>
+                <field name="product_id" context="{'display_default_code': False}"/>
+                <field name="categ_id" optional="hide"/>
+                <field name="stock_actual" string="Stock actual" sum="Total"/>
+                <field name="stock_minimo" string="Mínimo"/>
+                <field name="disponible_bodega" string="En bodega" optional="show"/>
+                <field name="estado" widget="badge"
+                       decoration-success="estado == 'suficiente'" decoration-warning="estado == 'bajo'"
+                       decoration-danger="estado == 'critico'" decoration-muted="estado == 'sin_minimo'"/>
+                <field name="cantidad_sugerida" optional="hide" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="valor_stock" optional="hide" sum="Total" groups="laroca_inventario.group_laroca_admin"/>
+                <field name="uom_id" optional="hide"/>
+                <field name="ultima_actualizacion" optional="show"/>
+                <field name="ultima_actualizacion_por" optional="hide" widget="many2one_avatar_user"/>
+                <button name="action_actualizar_stock" type="object" string="Corregir" icon="fa-pencil" class="btn-link"
+                        groups="laroca_inventario.group_laroca_admin"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Kanban: vista cómoda para teléfono -->
+    <record id="view_laroca_inventario_kanban" model="ir.ui.view">
+        <field name="name">laroca.inventario.kanban</field>
+        <field name="model">laroca.inventario</field>
+        <field name="arch" type="xml">
+            <kanban create="0" class="o_kanban_mobile" default_order="prioridad, product_id">
+                <field name="prioridad"/>
+                <field name="estado"/>
+                <templates>
+                    <t t-name="card" class="p-0">
+                        <!-- Borde izquierdo de color según el estado (ver static/src/scss/laroca.scss) -->
+                        <div t-attf-class="o_laroca_tarjeta o_laroca_#{record.estado.raw_value} d-flex flex-row w-100 h-100 p-2">
+                            <aside class="me-2">
+                                <field name="image_128" widget="image" options="{'size': [72, 72], 'img_class': 'object-fit-cover rounded'}"/>
+                            </aside>
+                            <main class="flex-grow-1">
+                                <field name="product_id" class="fw-bold" context="{'display_default_code': False}"/>
+                                <div class="text-muted small">
+                                    <field name="default_code"/> · <field name="gasolinera_id"/>
+                                </div>
+                                <div class="d-flex align-items-end justify-content-between mt-1">
+                                    <div>
+                                        <div>
+                                            <field name="stock_actual" class="fw-bold fs-4"/>
+                                            <span class="text-muted"> / mín. <field name="stock_minimo"/></span>
+                                            <div class="text-muted small">En bodega: <field name="disponible_bodega"/></div>
+                                        </div>
+                                        <field name="estado" widget="badge"
+                                               decoration-success="estado == 'suficiente'" decoration-warning="estado == 'bajo'"
+                                               decoration-danger="estado == 'critico'" decoration-muted="estado == 'sin_minimo'"/>
+                                    </div>
+                                    <button name="action_actualizar_stock" type="object" class="btn btn-primary"
+                                            groups="laroca_inventario.group_laroca_admin">
+                                        <i class="fa fa-pencil"/> Corregir
+                                    </button>
+                                </div>
+                            </main>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Formulario: detalle del producto en la gasolinera (pantalla 10.3) -->
+    <record id="view_laroca_inventario_form" model="ir.ui.view">
+        <field name="name">laroca.inventario.form</field>
+        <field name="model">laroca.inventario</field>
+        <field name="arch" type="xml">
+            <form string="Detalle del producto" create="0" delete="0" edit="0">
+                <header>
+                    <button name="action_actualizar_stock" type="object" string="Corregir stock" class="btn-primary" icon="fa-pencil"
+                            groups="laroca_inventario.group_laroca_admin"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_ver_movimientos" type="object" class="oe_stat_button" icon="fa-exchange" string="Movimientos"/>
+                        <button name="action_ver_alertas" type="object" class="oe_stat_button" icon="fa-bell">
+                            <field name="alerta_abierta_count" widget="statinfo" string="Alertas abiertas"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Crítico" bg_color="text-bg-danger" invisible="estado != 'critico'"/>
+                    <widget name="web_ribbon" title="Bajo" bg_color="text-bg-warning" invisible="estado != 'bajo'"/>
+                    <widget name="web_ribbon" title="Suficiente" bg_color="text-bg-success" invisible="estado != 'suficiente'"/>
+                    <div class="d-flex flex-wrap gap-3 align-items-start mb-2">
+                        <field name="image_512" widget="image" options="{'size': [150, 150], 'img_class': 'object-fit-cover rounded border'}"/>
+                        <div class="oe_title flex-grow-1" style="min-width: 220px; max-width: 75%;">
+                            <h1><field name="product_id" readonly="1" options="{'no_open': True}" context="{'display_default_code': False}"/></h1>
+                            <h3 class="text-muted"><field name="gasolinera_id" readonly="1"/></h3>
+                            <field name="descripcion" class="text-muted" invisible="not descripcion"/>
+                        </div>
+                    </div>
+                    <group>
+                        <group string="Existencias">
+                            <field name="stock_actual" class="fs-3 fw-bold"
+                                   decoration-danger="estado == 'critico'" decoration-warning="estado == 'bajo'"/>
+                            <field name="stock_minimo" widget="laroca_contador"/>
+                            <field name="stock_objetivo" widget="laroca_contador"/>
+                            <field name="estado" widget="badge"
+                                   decoration-success="estado == 'suficiente'" decoration-warning="estado == 'bajo'"
+                                   decoration-danger="estado == 'critico'" decoration-muted="estado == 'sin_minimo'"/>
+                            <field name="cantidad_sugerida" invisible="estado not in ('bajo', 'critico')" class="fw-bold"/>
+                            <field name="cantidad_en_entrega" invisible="not cantidad_en_entrega"/>
+                            <field name="disponible_bodega" string="En bodega central"/>
+                            <field name="uom_id"/>
+                        </group>
+                        <group string="Información adicional">
+                            <field name="default_code"/>
+                            <field name="categ_id"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="costo_unitario" widget="monetary" options="{'currency_field': 'currency_id'}"
+                                   groups="laroca_inventario.group_laroca_admin"/>
+                            <field name="valor_stock" groups="laroca_inventario.group_laroca_admin"/>
+                            <field name="ultima_actualizacion"/>
+                            <field name="ultima_actualizacion_por" widget="many2one_avatar_user"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Movimientos recientes" name="movimientos">
+                            <field name="movimiento_ids" readonly="1">
+                                <list decoration-success="location_dest_usage in ('internal', 'transit')" decoration-danger="location_usage in ('internal', 'transit') and location_dest_usage not in ('internal', 'transit')">
+                                    <field name="location_usage" column_invisible="1"/>
+                                    <field name="location_dest_usage" column_invisible="1"/>
+                                    <field name="date" string="Fecha"/>
+                                    <field name="reference" string="Referencia"/>
+                                    <field name="location_id" string="Desde"/>
+                                    <field name="location_dest_id" string="Hacia"/>
+                                    <field name="quantity" string="Cantidad"/>
+                                    <field name="create_uid" string="Usuario" widget="many2one_avatar_user"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Búsqueda: panel lateral por gasolinera y categoría -->
+    <record id="view_laroca_inventario_search" model="ir.ui.view">
+        <field name="name">laroca.inventario.search</field>
+        <field name="model">laroca.inventario</field>
+        <field name="arch" type="xml">
+            <search string="Buscar en inventario">
+                <field name="product_id" string="Producto"/>
+                <field name="default_code"/>
+                <field name="gasolinera_id"/>
+                <field name="categ_id"/>
+                <filter name="pendientes" string="Pendientes de abastecer" domain="[('estado', 'in', ('bajo', 'critico'))]"/>
+                <filter name="criticos" string="Crítico" domain="[('estado', '=', 'critico')]"/>
+                <filter name="bajos" string="Bajo" domain="[('estado', '=', 'bajo')]"/>
+                <filter name="suficientes" string="Suficiente" domain="[('estado', '=', 'suficiente')]"/>
+                <filter name="sin_minimo" string="Sin mínimo definido" domain="[('estado', '=', 'sin_minimo')]"/>
+                <separator/>
+                <filter name="sin_stock" string="Sin existencias" domain="[('stock_actual', '&lt;=', 0)]"/>
+                <filter name="con_stock" string="Con existencias" domain="[('stock_actual', '&gt;', 0)]"/>
+                <separator/>
+                <filter name="sin_actualizar" string="Nunca actualizado" domain="[('ultima_actualizacion', '=', False)]"/>
+                <filter name="archivados" string="Productos archivados" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_gasolinera" string="Gasolinera" context="{'group_by': 'gasolinera_id'}"/>
+                    <filter name="group_categoria" string="Categoría" context="{'group_by': 'categ_id'}"/>
+                    <filter name="group_estado" string="Estado" context="{'group_by': 'estado'}"/>
+                </group>
+                <searchpanel view_types="list,kanban,graph,pivot">
+                    <field name="gasolinera_id" string="Gasolinera" icon="fa-building" enable_counters="1"/>
+                    <field name="estado" string="Estado" icon="fa-flag" enable_counters="1"/>
+                    <field name="categ_id" string="Categoría" icon="fa-tags" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_laroca_inventario" model="ir.actions.act_window">
+        <field name="name">Inventario por gasolinera</field>
+        <field name="res_model">laroca.inventario</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_laroca_inventario_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Aún no hay inventario registrado</p>
+            <p>Las líneas se crean automáticamente al registrar gasolineras y productos inventariables.</p>
+        </field>
+    </record>
+
+    <!-- Historial de movimientos de las gasolineras -->
+    <record id="view_laroca_move_line_list" model="ir.ui.view">
+        <field name="name">laroca.stock.move.line.list</field>
+        <field name="model">stock.move.line</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <list string="Movimientos" create="0" edit="0" delete="0" default_order="date desc, id desc"
+                  decoration-success="location_dest_usage in ('internal', 'transit')" decoration-danger="location_usage in ('internal', 'transit') and location_dest_usage not in ('internal', 'transit')">
+                <field name="location_usage" column_invisible="1"/>
+                <field name="location_dest_usage" column_invisible="1"/>
+                <field name="date" string="Fecha"/>
+                <field name="reference" string="Referencia"/>
+                <field name="product_id"/>
+                <field name="location_id" string="Desde"/>
+                <field name="location_dest_id" string="Hacia"/>
+                <field name="quantity" string="Cantidad" sum="Total"/>
+                <field name="product_uom_id" optional="hide"/>
+                <field name="create_uid" string="Usuario" widget="many2one_avatar_user"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Búsqueda simple de movimientos (reemplaza la de Odoo, con muchas opciones técnicas) -->
+    <record id="view_laroca_move_line_search" model="ir.ui.view">
+        <field name="name">laroca.stock.move.line.search</field>
+        <field name="model">stock.move.line</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <search string="Movimientos">
+                <field name="product_id"/>
+                <field name="reference" string="Referencia"/>
+                <field name="location_dest_id" string="Gasolinera"
+                       filter_domain="['|', ('location_id.warehouse_id', 'ilike', self), ('location_dest_id.warehouse_id', 'ilike', self)]"/>
+                <filter name="entradas" string="Entradas" domain="[('location_dest_usage', 'in', ('internal', 'transit'))]"/>
+                <filter name="salidas" string="Salidas" domain="[('location_usage', 'in', ('internal', 'transit')), ('location_dest_usage', 'not in', ('internal', 'transit'))]"/>
+                <separator/>
+                <filter name="hoy" string="Hoy" domain="[('date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="fecha" string="Fecha" date="date"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_laroca_movimientos" model="ir.actions.act_window">
+        <field name="name">Movimientos de inventario</field>
+        <field name="res_model">stock.move.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_laroca_move_line_list"/>
+        <field name="search_view_id" ref="view_laroca_move_line_search"/>
+        <field name="domain">[('state', '=', 'done'), '|', ('location_id.warehouse_id.laroca_es_gasolinera', '=', True), ('location_dest_id.warehouse_id.laroca_es_gasolinera', '=', True)]</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <!-- Acción de servidor: sincronizar líneas de inventario -->
+    <record id="action_laroca_sincronizar" model="ir.actions.server">
+        <field name="name">Sincronizar inventario</field>
+        <field name="model_id" ref="model_laroca_inventario"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_sincronizar_catalogo()</field>
+        <field name="groups_id" eval="[(4, ref('group_laroca_admin'))]"/>
+    </record>
+</odoo>

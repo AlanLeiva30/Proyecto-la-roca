@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="laroca_inventario.PanelGraficos">
+        <div class="row g-3 mb-4 w-100 mx-0">
+            <div class="col-12 col-lg-7 ps-0">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <t t-if="esEncargado">
+                            <h5 class="card-title">Estado de tus productos</h5>
+                            <div class="text-muted small mb-2">Tocá un color para ver esos productos.</div>
+                        </t>
+                        <t t-else="">
+                            <h5 class="card-title">Estado del inventario por gasolinera</h5>
+                            <div class="text-muted small mb-2">Tocá una barra para ver los productos pendientes de esa gasolinera.</div>
+                        </t>
+                        <div style="position: relative; height: 260px;">
+                            <canvas t-ref="estados"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-5 pe-0">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title" t-if="esEncargado">Unidades recibidas (últimos 6 meses)</h5>
+                        <h5 class="card-title" t-else="">Unidades entregadas (últimos 6 meses)</h5>
+                        <div t-if="hayEntregas" style="position: relative; height: 260px;">
+                            <canvas t-ref="entregas"/>
+                        </div>
+                        <div t-else="" class="text-muted py-5 text-center">Todavía no hay entregas recibidas.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ==================== PANTALLA RÁPIDA "PEDIR PRODUCTOS" ==================== -->
+    <record id="view_laroca_pedir_form" model="ir.ui.view">
+        <field name="name">laroca.pedir.form</field>
+        <field name="model">laroca.pedir</field>
+        <field name="arch" type="xml">
+            <form string="Pedir productos">
+                <group>
+                    <group>
+                        <field name="gasolinera_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="buscar" placeholder="Escribí parte del nombre, por ejemplo: llavero"/>
+                    </group>
+                    <group>
+                        <field name="categ_id" options="{'no_create': True, 'no_open': True}" placeholder="Todas"/>
+                    </group>
+                </group>
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <div class="d-flex align-items-center gap-2 border rounded-pill px-3 py-1 o_laroca_interruptor">
+                        <!-- autosave: false → al tocarlo se llenan las cantidades al instante (sin guardar) -->
+                        <field name="completar_sugerido" widget="boolean_toggle" options="{'autosave': false}" nolabel="1"/>
+                        <label for="completar_sugerido" class="fw-bold mb-0"><i class="fa fa-magic me-1" title="Sugerido"/>Completar con lo sugerido</label>
+                    </div>
+                    <span class="text-muted small">Usá <b>−</b> y <b>+</b> en <b>Pido</b>, o tocá el número
+                        <b>Sugerido</b> para copiarlo. Lo que más falta aparece primero.</span>
+                </div>
+                <field name="linea_ids" nolabel="1">
+                    <list editable="bottom" create="0" delete="0" decoration-bf="cantidad &gt; 0"
+                          decoration-danger="estado == 'critico'" decoration-warning="estado == 'bajo'">
+                        <field name="inventario_id" column_invisible="1"/>
+                        <field name="image_128" widget="image" options="{'size': [32, 32]}" string=" " readonly="1" width="44px"/>
+                        <field name="product_id" readonly="1" options="{'no_open': True}" context="{'display_default_code': False}"/>
+                        <field name="stock_actual" width="60px"/>
+                        <field name="stock_minimo" optional="show" width="65px"/>
+                        <field name="estado" widget="badge" optional="show" width="95px"
+                               decoration-success="estado == 'suficiente'" decoration-warning="estado == 'bajo'"
+                               decoration-danger="estado == 'critico'" decoration-muted="estado == 'sin_minimo'"/>
+                        <field name="cantidad_sugerida" widget="laroca_usar_sugerido" options="{'destino': 'cantidad'}" width="95px"/>
+                        <field name="disponible_bodega" width="85px"/>
+                        <field name="cantidad" widget="laroca_contador" options="{'siempre': true}" width="150px"/>
+                    </list>
+                    <!-- En el celular: una tarjeta por producto; al tocarla se escribe la cantidad -->
+                    <kanban create="0" delete="0">
+                        <field name="inventario_id"/>
+                        <templates>
+                            <t t-name="card" class="flex-row align-items-center">
+                                <field name="image_128" widget="image" options="{'size': [56, 56]}" class="me-2"/>
+                                <div class="flex-grow-1">
+                                    <field name="product_id" class="fw-bold" context="{'display_default_code': False}"/>
+                                    <div class="text-muted small">
+                                        Tengo <field name="stock_actual"/> · mín. <field name="stock_minimo"/>
+                                        <t t-if="record.cantidad_sugerida.raw_value"> · sugerido <field name="cantidad_sugerida"/></t>
+                                    </div>
+                                    <field name="estado" widget="badge"
+                                           decoration-warning="estado == 'bajo'" decoration-danger="estado == 'critico'"
+                                           invisible="estado not in ('bajo', 'critico')"/>
+                                </div>
+                                <div class="text-end">
+                                    <div class="small text-muted">Pido</div>
+                                    <field name="cantidad" class="fs-4 fw-bold text-primary"/>
+                                </div>
+                            </t>
+                        </templates>
+                    </kanban>
+                    <form string="¿Cuántos necesitás?" create="0" delete="0" class="o_laroca_linea_rapida">
+                        <field name="inventario_id" invisible="1"/>
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <field name="image_128" widget="image" options="{'size': [96, 96]}" readonly="1"/>
+                            <div>
+                                <h3 class="mb-1"><field name="product_id" readonly="1" options="{'no_open': True}"
+                                                        context="{'display_default_code': False}"/></h3>
+                                <div>Tengo: <field name="stock_actual" class="d-inline"/> · Mínimo: <field name="stock_minimo" class="d-inline"/></div>
+                                <div>Sugerido: <field name="cantidad_sugerida" class="d-inline" widget="laroca_usar_sugerido"
+                                                      options="{'destino': 'cantidad'}"/></div>
+                                <div>En bodega central: <field name="disponible_bodega" class="d-inline"/></div>
+                            </div>
+                        </div>
+                        <group>
+                            <field name="cantidad" string="Cantidad que pido" widget="laroca_contador"/>
+                        </group>
+                    </form>
+                </field>
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
+                    <field name="nota" placeholder="Comentario (opcional): para el fin de semana largo…" class="flex-grow-1"/>
+                    <span class="fs-5">Unidades: <field name="total_unidades" class="d-inline fw-bold text-primary"/></span>
+                </div>
+                <footer>
+                    <button name="action_enviar" type="object" string="Enviar pedido" class="btn-primary" icon="fa-paper-plane"
+                            data-hotkey="q"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_laroca_pedir" model="ir.actions.act_window">
+        <field name="name">Pedir productos</field>
+        <field name="res_model">laroca.pedir</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'dialog_size': 'extra-large'}</field>
+    </record>
+
+    <!-- ==================== PEDIDOS DE LAS GASOLINERAS ==================== -->
+    <record id="view_laroca_pedido_list" model="ir.ui.view">
+        <field name="name">laroca.pedido.list</field>
+        <field name="model">laroca.pedido</field>
+        <field name="arch" type="xml">
+            <list string="Pedidos" create="0" decoration-info="estado == 'enviado'" decoration-muted="estado in ('rechazado', 'entregado')"
+                  decoration-bf="estado == 'enviado'">
+                <header>
+                    <button name="%(laroca_inventario.action_laroca_pedir)d" type="action" string="Pedir productos"
+                            class="btn-primary" icon="fa-paper-plane" display="always"/>
+                </header>
+                <field name="name"/>
+                <field name="fecha_envio"/>
+                <field name="gasolinera_id"/>
+                <field name="solicitante_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="origen" widget="badge" decoration-primary="origen == 'administrador'" decoration-muted="origen == 'encargado'"/>
+                <field name="total_productos"/>
+                <field name="total_unidades" sum="Total"/>
+                <field name="entrega_id" optional="show"/>
+                <field name="estado" widget="badge" decoration-info="estado == 'enviado'"
+                       decoration-warning="estado in ('aprobado', 'en_camino')" decoration-success="estado == 'entregado'"
+                       decoration-danger="estado == 'rechazado'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_laroca_pedido_form" model="ir.ui.view">
+        <field name="name">laroca.pedido.form</field>
+        <field name="model">laroca.pedido</field>
+        <field name="arch" type="xml">
+            <form string="Pedido de productos" create="0">
+                <header>
+                    <button name="action_enviar" type="object" string="Enviar pedido" class="btn-primary" icon="fa-paper-plane"
+                            invisible="estado != 'borrador'"
+                            confirm="Una vez enviado, el pedido ya no se puede modificar. ¿Enviarlo al administrador?"/>
+                    <button name="action_aprobar" type="object" string="Aprobar y preparar entrega" class="btn-primary"
+                            icon="fa-check" invisible="estado != 'enviado'" groups="laroca_inventario.group_laroca_admin"/>
+                    <button name="action_abrir_rechazo" type="object" string="Rechazar" icon="fa-times"
+                            invisible="estado != 'enviado'" groups="laroca_inventario.group_laroca_admin"/>
+                    <field name="estado" widget="statusbar" statusbar_visible="borrador,enviado,aprobado,en_camino,entregado"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_ver_entrega" type="object" class="oe_stat_button" icon="fa-truck"
+                                string="Entrega" invisible="not entrega_id"/>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <!-- En el teléfono Odoo esconde los botones de la cabecera: estos quedan a la vista -->
+                    <button name="action_enviar" type="object" string="Enviar pedido" icon="fa-paper-plane"
+                            class="btn btn-primary w-100 mb-3 d-md-none" invisible="estado != 'borrador'"
+                            confirm="Una vez enviado, el pedido ya no se puede modificar. ¿Enviarlo al administrador?"/>
+                    <div class="alert alert-info" role="status" invisible="estado != 'enviado'">
+                        <i class="fa fa-info-circle me-1" title="Información"/>Pedido enviado al administrador. Ya no se puede
+                        modificar; si necesitás más productos, hacé otro pedido.
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="estado != 'rechazado'">
+                        <b>Pedido rechazado.</b> Motivo: <field name="motivo_rechazo" class="d-inline"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="gasolinera_id" readonly="estado != 'borrador'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="solicitante_id"/>
+                            <field name="origen" widget="badge" decoration-primary="origen == 'administrador'"/>
+                        </group>
+                        <group>
+                            <field name="fecha_envio" invisible="not fecha_envio"/>
+                            <field name="entrega_id" invisible="not entrega_id"/>
+                        </group>
+                    </group>
+                    <button name="action_agregar_faltantes" type="object" string="Agregar lo que se está acabando"
+                            icon="fa-magic" class="btn btn-outline-primary mb-2" invisible="estado != 'borrador'"/>
+                    <field name="linea_ids" readonly="estado != 'borrador'">
+                        <list editable="bottom">
+                            <field name="image_128" widget="image" options="{'size': [32, 32]}" string=" " readonly="1"/>
+                            <field name="product_id" options="{'no_create': True, 'no_open': True}"
+                                   context="{'display_default_code': False}"/>
+                            <field name="stock_gasolinera" string="Tengo"/>
+                            <field name="disponible_bodega" string="En bodega" optional="show"/>
+                            <field name="cantidad" string="Pido" widget="laroca_contador" width="150px"/>
+                        </list>
+                        <kanban>
+                            <templates>
+                                <t t-name="card">
+                                    <field name="product_id" class="fw-bold" context="{'display_default_code': False}"/>
+                                    <div class="d-flex justify-content-between text-muted small">
+                                        <span>Tengo: <field name="stock_gasolinera"/></span>
+                                        <span>Pido: <field name="cantidad" class="fw-bold text-body"/></span>
+                                    </div>
+                                </t>
+                            </templates>
+                        </kanban>
+                    </field>
+                    <field name="nota" readonly="estado != 'borrador'"
+                           placeholder="Comentario para el administrador (opcional), por ejemplo: para el fin de semana largo."/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_laroca_pedido_search" model="ir.ui.view">
+        <field name="name">laroca.pedido.search</field>
+        <field name="model">laroca.pedido</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="gasolinera_id"/>
+                <field name="linea_ids" string="Producto" filter_domain="[('linea_ids.product_id', 'ilike', self)]"/>
+                <filter name="mios" string="Mis pedidos" domain="[('solicitante_id', '=', uid)]"/>
+                <filter name="fecha" string="Fecha" date="fecha_envio"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_gasolinera" string="Gasolinera" context="{'group_by': 'gasolinera_id'}"/>
+                    <filter name="group_estado" string="Estado" context="{'group_by': 'estado'}"/>
+                </group>
+                <searchpanel>
+                    <field name="origen" string="Origen" icon="fa-random" enable_counters="1"/>
+                    <field name="estado" string="Estado" icon="fa-flag" enable_counters="1"/>
+                    <field name="gasolinera_id" string="Gasolinera" icon="fa-building" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_laroca_pedidos" model="ir.actions.act_window">
+        <field name="name">Pedidos</field>
+        <field name="res_model">laroca.pedido</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_laroca_pedido_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Pedí productos al administrador</p>
+            <p>Tocá <b>Pedir productos</b>, escribí cuánto necesitás (por ejemplo, 50 llaveros) y
+               pulsá <b>Enviar pedido</b>. El administrador recibe el aviso y te manda la entrega.</p>
+        </field>
+    </record>
+
+    <record id="view_laroca_pedido_rechazo_form" model="ir.ui.view">
+        <field name="name">laroca.pedido.rechazo.form</field>
+        <field name="model">laroca.pedido.rechazo</field>
+        <field name="arch" type="xml">
+            <form string="Rechazar pedido">
+                <field name="pedido_id" invisible="1"/>
+                <group>
+                    <field name="motivo" placeholder="Por ejemplo: no hay llaveros en bodega hasta la próxima compra."/>
+                </group>
+                <footer>
+                    <button name="action_confirmar" type="object" string="Rechazar pedido" class="btn-danger"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- La entrega muestra de qué pedido viene -->
+    <record id="view_laroca_entrega_form_pedido" model="ir.ui.view">
+        <field name="name">laroca.entrega.form.pedido</field>
+        <field name="model">laroca.entrega</field>
+        <field name="inherit_id" ref="view_laroca_entrega_form"/>
+        <field name="arch" type="xml">
+            <field name="responsable_id" position="after">
+                <field name="pedido_id" invisible="not pedido_id"/>
+            </field>
+        </field>
+    </record>
+</odoo>

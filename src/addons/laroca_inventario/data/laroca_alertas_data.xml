@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Numeración de alertas: ALR-00001, ALR-00002, ... -->
+        <record id="seq_laroca_alerta" model="ir.sequence">
+            <field name="name">Alertas de abastecimiento</field>
+            <field name="code">laroca.alerta</field>
+            <field name="prefix">ALR-</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="seq_laroca_pedido" model="ir.sequence">
+            <field name="name">Pedidos de las gasolineras</field>
+            <field name="code">laroca.pedido</field>
+            <field name="prefix">PED-</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="seq_laroca_venta" model="ir.sequence">
+            <field name="name">Ventas de las gasolineras</field>
+            <field name="code">laroca.venta</field>
+            <field name="prefix">VEN-</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="seq_laroca_entrega" model="ir.sequence">
+            <field name="name">Entregas de abastecimiento</field>
+            <field name="code">laroca.entrega</field>
+            <field name="prefix">ENT-</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Canal de Conversaciones donde llegan las alertas. Solo administradores
+             (se suscriben automáticamente por pertenecer al grupo). -->
+        <record id="canal_alertas_abastecimiento" model="discuss.channel">
+            <field name="name">Alertas de abastecimiento</field>
+            <field name="channel_type">channel</field>
+            <field name="description">Avisos automáticos de productos con stock bajo o crítico en las gasolineras.</field>
+            <field name="group_public_id" ref="group_laroca_admin"/>
+            <field name="group_ids" eval="[(4, ref('group_laroca_admin'))]"/>
+        </record>
+
+        <!-- Bodega central por defecto: el almacén principal de Odoo -->
+        <record id="base.main_company" model="res.company">
+            <field name="laroca_bodega_central_id" ref="stock.warehouse0"/>
+        </record>
+
+        <!-- Tareas programadas -->
+        <record id="cron_laroca_sincronizar_alertas" model="ir.cron">
+            <field name="name">La Roca: revisar alertas de abastecimiento</field>
+            <field name="model_id" ref="model_laroca_alerta"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_sincronizar_alertas()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- 13:00 UTC = 7:00 a. m. en El Salvador -->
+        <record id="cron_laroca_resumen_diario" model="ir.cron">
+            <field name="name">La Roca: resumen diario de abastecimiento</field>
+            <field name="model_id" ref="model_laroca_alerta"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_resumen_diario()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 13:00:00')"/>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>
